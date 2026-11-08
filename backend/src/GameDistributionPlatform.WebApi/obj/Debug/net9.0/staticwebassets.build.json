@@ -1,0 +1,12 @@
+{
+  "Version": 1,
+  "Hash": "mlkKX7Lv4gUmSkHKyqpe/GLBjXFd/G1DiMpoCvuownQ=",
+  "Source": "GameDistributionPlatform.WebApi",
+  "BasePath": "_content/GameDistributionPlatform.WebApi",
+  "Mode": "Default",
+  "ManifestType": "Build",
+  "ReferencedProjectsConfiguration": [],
+  "DiscoveryPatterns": [],
+  "Assets": [],
+  "Endpoints": []
+}
