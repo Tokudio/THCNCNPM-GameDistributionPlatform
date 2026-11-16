@@ -29,6 +29,11 @@ public class AppDbContext : IdentityDbContext<ApplicationUser, IdentityRole<Guid
         modelBuilder.Entity<ApplicationUser>(b =>
         {
             b.Property(u => u.DisplayName).HasMaxLength(100);
+
+            b.HasIndex(u => u.NormalizedEmail)
+                .HasDatabaseName("EmailIndex")
+                .IsUnique()
+                .HasFilter("[NormalizedEmail] IS NOT NULL");
         });
 
         // Áp dụng tất cả các cấu hình IEntityTypeConfiguration trong assembly này
