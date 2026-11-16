@@ -1,5 +1,6 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Runtime.ExceptionServices;
+using System.Security.Claims;
 using GameDistributionPlatform.Application.Interfaces;
 using GameDistributionPlatform.Infrastructure.Data;
 using GameDistributionPlatform.Infrastructure.Data.Seeding;
@@ -119,6 +120,27 @@ builder.Services.AddAuthentication(options =>
                     context.Fail("User account is inactive or not found.");
                     return;
                 }
+
+                var roles = await userManager.GetRolesAsync(user);
+                context.HttpContext.RequestAborted.ThrowIfCancellationRequested();
+
+                if (context.Principal?.Identity is not ClaimsIdentity { IsAuthenticated: true } identity)
+                {
+                    throw new InvalidOperationException("The validated JWT principal does not contain an authenticated identity.");
+                }
+
+                foreach (var roleClaim in identity.FindAll("role").ToArray())
+                {
+                    identity.RemoveClaim(roleClaim);
+                }
+
+                foreach (var role in roles)
+                {
+                    if (!string.IsNullOrWhiteSpace(role))
+                    {
+                        identity.AddClaim(new Claim("role", role));
+                    }
+                }
             }
             catch (OperationCanceledException) when (context.HttpContext.RequestAborted.IsCancellationRequested)
             {
@@ -126,11 +148,11 @@ builder.Services.AddAuthentication(options =>
             }
             catch (OperationCanceledException ex)
             {
-                throw new JwtUserLookupException("An infrastructure error occurred while validating user state in database.", ex);
+                throw new JwtUserLookupException("An infrastructure error occurred while validating user authentication data in database.", ex);
             }
             catch (Exception ex)
             {
-                throw new JwtUserLookupException("An infrastructure error occurred while validating user state in database.", ex);
+                throw new JwtUserLookupException("An infrastructure error occurred while validating user authentication data in database.", ex);
             }
         },
         OnAuthenticationFailed = context =>
@@ -170,6 +192,46 @@ builder.Services.AddAuthentication(options =>
                 Detail = "Authentication is required to access this resource. Please provide a valid Bearer token.",
                 Instance = context.Request.Path,
                 Type = "https://tools.ietf.org/html/rfc9110#section-15.5.2"
+            };
+            problemDetails.Extensions["traceId"] = context.HttpContext.TraceIdentifier;
+
+            var problemDetailsService = context.HttpContext.RequestServices.GetService<IProblemDetailsService>();
+            var written = false;
+
+            if (problemDetailsService != null)
+            {
+                written = await problemDetailsService.TryWriteAsync(new ProblemDetailsContext
+                {
+                    HttpContext = context.HttpContext,
+                    ProblemDetails = problemDetails
+                });
+            }
+
+            if (!written)
+            {
+                await context.Response.WriteAsJsonAsync(
+                    problemDetails,
+                    options: null,
+                    contentType: "application/problem+json",
+                    cancellationToken: context.HttpContext.RequestAborted);
+            }
+        },
+        OnForbidden = async context =>
+        {
+            if (context.Response.HasStarted || context.HttpContext.RequestAborted.IsCancellationRequested)
+            {
+                return;
+            }
+
+            context.Response.StatusCode = StatusCodes.Status403Forbidden;
+
+            var problemDetails = new ProblemDetails
+            {
+                Status = StatusCodes.Status403Forbidden,
+                Title = "Forbidden",
+                Detail = "You do not have permission to access this resource.",
+                Instance = context.Request.Path,
+                Type = "https://tools.ietf.org/html/rfc9110#section-15.5.4"
             };
             problemDetails.Extensions["traceId"] = context.HttpContext.TraceIdentifier;
 
