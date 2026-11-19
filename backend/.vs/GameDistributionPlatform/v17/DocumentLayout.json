@@ -1,7 +1,20 @@
 {
   "Version": 1,
   "WorkspaceRootPath": "D:\\Workspace\\GameDistributionPlatform\\backend\\",
-  "Documents": [],
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{16E71D0A-A75A-4888-B67D-6CC6A0B6AC4F}|src\\GameDistributionPlatform.WebApi\\GameDistributionPlatform.WebApi.csproj|d:\\workspace\\gamedistributionplatform\\backend\\src\\gamedistributionplatform.webapi\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{16E71D0A-A75A-4888-B67D-6CC6A0B6AC4F}|src\\GameDistributionPlatform.WebApi\\GameDistributionPlatform.WebApi.csproj|solutionrelative:src\\gamedistributionplatform.webapi\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{16E71D0A-A75A-4888-B67D-6CC6A0B6AC4F}|src\\GameDistributionPlatform.WebApi\\GameDistributionPlatform.WebApi.csproj|d:\\workspace\\gamedistributionplatform\\backend\\src\\gamedistributionplatform.webapi\\properties\\launchsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}",
+      "RelativeMoniker": "D:0:0:{16E71D0A-A75A-4888-B67D-6CC6A0B6AC4F}|src\\GameDistributionPlatform.WebApi\\GameDistributionPlatform.WebApi.csproj|solutionrelative:src\\gamedistributionplatform.webapi\\properties\\launchsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{DD381C7C-429E-4540-BB70-4F666CCB9FEC}|src\\GameDistributionPlatform.Application\\GameDistributionPlatform.Application.csproj|d:\\workspace\\gamedistributionplatform\\backend\\src\\gamedistributionplatform.application\\dtos\\authresponse.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{DD381C7C-429E-4540-BB70-4F666CCB9FEC}|src\\GameDistributionPlatform.Application\\GameDistributionPlatform.Application.csproj|solutionrelative:src\\gamedistributionplatform.application\\dtos\\authresponse.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    }
+  ],
   "DocumentGroupContainers": [
     {
       "Orientation": 0,
@@ -9,7 +22,7 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": -1,
+          "SelectedChildIndex": 3,
           "Children": [
             {
               "$type": "Bookmark",
@@ -22,6 +35,45 @@
             {
               "$type": "Bookmark",
               "Name": "ST:0:0:{3ae79031-e1bc-11d0-8f78-00a0c9110057}"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "Program.cs",
+              "DocumentMoniker": "D:\\Workspace\\GameDistributionPlatform\\backend\\src\\GameDistributionPlatform.WebApi\\Program.cs",
+              "RelativeDocumentMoniker": "src\\GameDistributionPlatform.WebApi\\Program.cs",
+              "ToolTip": "D:\\Workspace\\GameDistributionPlatform\\backend\\src\\GameDistributionPlatform.WebApi\\Program.cs",
+              "RelativeToolTip": "src\\GameDistributionPlatform.WebApi\\Program.cs",
+              "ViewState": "AgIAAEEBAAAAAAAAAAAqwAgAAAA3AAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-11-19T08:47:37.309Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "launchSettings.json",
+              "DocumentMoniker": "D:\\Workspace\\GameDistributionPlatform\\backend\\src\\GameDistributionPlatform.WebApi\\Properties\\launchSettings.json",
+              "RelativeDocumentMoniker": "src\\GameDistributionPlatform.WebApi\\Properties\\launchSettings.json",
+              "ToolTip": "D:\\Workspace\\GameDistributionPlatform\\backend\\src\\GameDistributionPlatform.WebApi\\Properties\\launchSettings.json",
+              "RelativeToolTip": "src\\GameDistributionPlatform.WebApi\\Properties\\launchSettings.json",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABgAAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
+              "WhenOpened": "2026-11-19T08:46:23.12Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "AuthResponse.cs",
+              "DocumentMoniker": "D:\\Workspace\\GameDistributionPlatform\\backend\\src\\GameDistributionPlatform.Application\\DTOs\\AuthResponse.cs",
+              "RelativeDocumentMoniker": "src\\GameDistributionPlatform.Application\\DTOs\\AuthResponse.cs",
+              "ToolTip": "D:\\Workspace\\GameDistributionPlatform\\backend\\src\\GameDistributionPlatform.Application\\DTOs\\AuthResponse.cs",
+              "RelativeToolTip": "src\\GameDistributionPlatform.Application\\DTOs\\AuthResponse.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAgAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-11-19T08:43:06.192Z",
+              "EditorCaption": ""
             }
           ]
         }

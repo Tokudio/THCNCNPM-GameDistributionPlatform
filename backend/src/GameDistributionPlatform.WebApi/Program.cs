@@ -294,9 +294,20 @@ using (var scope = app.Services.CreateScope())
 // Configure the HTTP request pipeline.
 app.UseExceptionHandler();
 
+// Configure OpenAPI and Swagger UI
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
+
+    app.UseSwaggerUI(options =>
+    {
+        options.SwaggerEndpoint(
+            "/openapi/v1.json",
+            "GameDistributionPlatform API v1");
+
+        options.RoutePrefix = "swagger";
+        options.DocumentTitle = "GameDistributionPlatform API";
+    });
 }
 
 app.UseHttpsRedirection();
