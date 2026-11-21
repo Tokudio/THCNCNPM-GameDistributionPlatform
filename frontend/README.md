@@ -2,15 +2,17 @@
 
 This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 21.2.29.
 
-## Development server
+## Local authentication
 
-To start a local development server, run:
+Start the Web API with its HTTPS launch profile from the repository root. The API needs its existing Development database and JWT configuration.
 
 ```bash
-ng serve
+dotnet run --project backend/src/GameDistributionPlatform.WebApi --launch-profile https
 ```
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
+Run `npm start` from `frontend` and open `http://localhost:4200/`. The Angular Development proxy forwards `/api/**` to `https://localhost:7255`. Production hosting must serve or forward `/api/v1/**` on the same origin as the app.
+
+The app stores the JWT in `sessionStorage` for refreshes in the current tab and verifies it with `/api/v1/auth/me` at startup. Browser scripts can read this storage. Sign out clears the local session immediately. A JWT already issued by the API remains valid until it expires, subject to backend authentication checks.
 
 ## Code scaffolding
 
@@ -41,7 +43,7 @@ This will compile your project and store the build artifacts in the `dist/` dire
 To execute unit tests with the [Vitest](https://vitest.dev/) test runner, use the following command:
 
 ```bash
-ng test
+npm test -- --watch=false
 ```
 
 ## Running end-to-end tests

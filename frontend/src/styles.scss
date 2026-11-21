@@ -1,1 +1,124 @@
-/* You can add global styles to this file, and also import other style files */
+:root {
+  color-scheme: dark;
+  --background: #101017;
+  --surface: #191824;
+  --raised: #292638;
+  --input: #13121d;
+  --border: #343143;
+  --text: #f4f1fb;
+  --muted: #aaa5b7;
+  --accent-text: #c4afff;
+  --accent: #a986ff;
+  --accent-hover: #bea4ff;
+  --focus: #d8caff;
+  --danger: #ffadb8;
+  --success: #9fe5c3;
+  font-family: Inter, 'Segoe UI', system-ui, sans-serif;
+  font-size: 100%;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: radial-gradient(ellipse at 50% 8%, #1a1528 0, var(--background) 52rem);
+  color: var(--text);
+  line-height: 1.5;
+}
+
+button, input { font: inherit; }
+a { color: var(--accent-text); }
+:focus-visible { outline: 2px solid var(--focus); outline-offset: 3px; }
+
+.button {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  gap: .6rem;
+  min-height: 2.625rem;
+  padding: .5rem .95rem;
+  border: 1px solid transparent;
+  border-radius: .625rem;
+  font-size: .875rem;
+  font-weight: 700;
+  text-decoration: none;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.button-secondary {
+  border-color: var(--border);
+  background: var(--surface);
+  color: var(--text);
+}
+.button-secondary:hover { background: var(--raised); }
+.button-quiet { background: transparent; color: var(--accent-text); }
+.button-quiet:hover { background: var(--raised); }
+
+.button-primary {
+  width: 100%;
+  min-height: 3.125rem;
+  border-color: #c4aaff40;
+  background: var(--accent);
+  color: #160d2a;
+  font-size: .9375rem;
+}
+.button-primary:hover:not(:disabled) { background: var(--accent-hover); }
+.button-primary:disabled {
+  background: #382e4c;
+  border-color: #4d3e63;
+  color: #c4b5dd;
+  cursor: not-allowed;
+}
+
+.auth-panel { width: min(100%, 25rem); margin: 0 auto; }
+.auth-panel h1, .account-card h1 {
+  margin: 0 0 clamp(1.25rem, 3vw, 2rem);
+  font-size: clamp(2rem, 4vw, 3.125rem);
+  line-height: 1.08;
+  font-weight: 760;
+  letter-spacing: -.045em;
+}
+.auth-form fieldset {
+  display: grid;
+  gap: 1.05rem;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+.auth-form .button-primary { margin-top: .5rem; }
+
+.notice {
+  margin: 0 0 1rem;
+  padding: .65rem .85rem;
+  border: 1px solid currentColor;
+  border-radius: .625rem;
+  color: var(--accent-text);
+  background: #272036;
+  font-size: .875rem;
+}
+.notice-error { color: var(--danger); background: #31212d; }
+.notice-success { color: var(--success); background: #1e2c2c; }
+
+.spinner {
+  width: 1rem;
+  height: 1rem;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 100%;
+  animation: spin .75s linear infinite;
+}
+@keyframes spin { to { transform: rotate(1turn); } }
+@media (prefers-reduced-motion: reduce) { .spinner { animation: none; } }
+
+.account-card {
+  width: min(100%, 42rem);
+  margin: clamp(0px, 6vw, 3.5rem) auto 0;
+  padding: clamp(1.5rem, 5vw, 3.25rem);
+  border: 1px solid var(--border);
+  border-radius: 1.25rem;
+  background: linear-gradient(140deg, #262036, var(--surface) 65%);
+  box-shadow: 0 1.25rem 5rem #05040b50;
+}
+.account-card p { color: var(--muted); }
