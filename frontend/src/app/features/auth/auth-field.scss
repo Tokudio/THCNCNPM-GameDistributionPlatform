@@ -1,0 +1,31 @@
+:host { display: block; min-width: 0; }
+label { display: block; margin-bottom: .5rem; font-size: .875rem; font-weight: 650; }
+.field-control { position: relative; }
+input {
+  width: 100%;
+  min-height: 3.125rem;
+  padding: .65rem .875rem;
+  border: 1px solid var(--border);
+  border-radius: .625rem;
+  background: var(--input);
+  color: var(--text);
+}
+input::placeholder { color: var(--muted); }
+input[aria-invalid="true"] { border-color: var(--danger); }
+input:has(+ .password-toggle) { padding-right: 4.25rem; }
+.password-toggle {
+  position: absolute;
+  inset: .375rem .375rem .375rem auto;
+  min-width: 3.15rem;
+  padding: 0 .4rem;
+  background: transparent;
+  color: var(--accent-text);
+  border: 0;
+  border-radius: .375rem;
+  font-size: .875rem;
+  font-weight: 650;
+  cursor: pointer;
+}
+.password-toggle:hover { background: var(--raised); }
+.field-message { margin: .4rem 0 0; color: var(--muted); font-size: .8125rem; line-height: 1.4; }
+.field-error { color: var(--danger); }

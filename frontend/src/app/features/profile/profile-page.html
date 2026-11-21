@@ -1,0 +1,25 @@
+@if (auth.currentUser(); as user) {
+  <section class="account-card" aria-labelledby="page-title">
+    <div class="profile-heading">
+      <div class="avatar" aria-hidden="true">{{ user.displayName.slice(0, 1).toUpperCase() }}</div>
+      <h1 id="page-title">Your profile</h1>
+    </div>
+    <dl class="profile-details">
+      <div><dt>Display name</dt><dd>{{ user.displayName }}</dd></div>
+      <div><dt>Email address</dt><dd>{{ user.email }}</dd></div>
+      <div>
+        <dt>Roles</dt>
+        <dd>
+          @for (role of user.roles; track role) {
+            <span class="role">{{ role }}</span>
+          } @empty {
+            No roles assigned.
+          }
+        </dd>
+      </div>
+    </dl>
+    @if (user.roles.includes('Admin')) {
+      <a class="button button-secondary" routerLink="/admin">Administrator access</a>
+    }
+  </section>
+}

@@ -14,31 +14,7 @@ import {
 @Component({
   imports: [ReactiveFormsModule, AuthField],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  template: `
-    <section class="auth-panel" aria-labelledby="page-title">
-      <h1 id="page-title">Create your account</h1>
-      @if (feedback()) {
-        <p class="notice notice-error" role="alert">{{ feedback() }}</p>
-      }
-      <form class="auth-form" [formGroup]="form" (ngSubmit)="submit()" [attr.aria-busy]="submitting()" novalidate>
-        <fieldset [disabled]="submitting()">
-          <app-auth-field fieldId="displayName" label="Display name" autocomplete="nickname"
-            placeholder="Your player name" [control]="form.controls.displayName" [error]="displayNameError" />
-          <app-auth-field fieldId="email" label="Email address" type="email" autocomplete="email"
-            placeholder="you@example.com" [control]="form.controls.email" [error]="emailError" />
-          <app-auth-field fieldId="password" label="Password" type="password" autocomplete="new-password"
-            placeholder="Create a password" [control]="form.controls.password" [error]="passwordError"
-            [hint]="passwordHint" />
-          <app-auth-field fieldId="confirmPassword" label="Confirm password" type="password" autocomplete="new-password"
-            placeholder="Re-enter your password" [control]="form.controls.confirmPassword" [error]="confirmationError" />
-          <button type="submit" class="button button-primary" [disabled]="form.invalid || submitting()">
-            @if (submitting()) { <span class="spinner" aria-hidden="true"></span> Creating account… }
-            @else { Create account }
-          </button>
-        </fieldset>
-      </form>
-    </section>
-  `,
+  templateUrl: './register-page.html',
 })
 export class RegisterPage {
   private readonly auth = inject(AuthService);

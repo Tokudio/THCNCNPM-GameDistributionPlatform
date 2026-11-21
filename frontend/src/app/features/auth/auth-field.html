@@ -1,0 +1,27 @@
+<label [for]="fieldId()">{{ label() }}</label>
+<div class="field-control">
+  <input
+    [id]="fieldId()"
+    [type]="inputType()"
+    [formControl]="control()"
+    [autocomplete]="autocomplete()"
+    [placeholder]="placeholder()"
+    [attr.aria-invalid]="error() ? 'true' : null"
+    [attr.aria-describedby]="error() || hint() ? fieldId() + '-message' : null"
+    required
+  />
+  @if (type() === 'password') {
+    <button
+      type="button"
+      class="password-toggle"
+      [attr.aria-label]="(visible() ? 'Hide ' : 'Show ') + label().toLowerCase()"
+      [attr.aria-controls]="fieldId()"
+      (click)="visible.set(!visible())"
+    >{{ visible() ? 'Hide' : 'Show' }}</button>
+  }
+</div>
+@if (error() || hint()) {
+  <p [id]="fieldId() + '-message'" class="field-message" [class.field-error]="error()">
+    {{ error() || hint() }}
+  </p>
+}

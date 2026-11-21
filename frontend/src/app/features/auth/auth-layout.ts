@@ -4,57 +4,7 @@ import { RouterOutlet } from '@angular/router';
 @Component({
   imports: [RouterOutlet],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  template: `
-    <div class="auth-layout">
-      <div class="auth-art" aria-hidden="true">
-        <img src="auth-world.jpg" alt="" fetchpriority="high" />
-      </div>
-      <div class="auth-content">
-        <router-outlet />
-      </div>
-    </div>
-  `,
-  styles: `
-    :host { display: block; }
-    .auth-layout {
-      display: grid;
-      grid-template-columns: minmax(0, 1.12fr) minmax(0, .88fr);
-      max-width: 75rem;
-      min-height: min(47rem, calc(100svh - 9rem));
-      margin: 0 auto;
-      border: 1px solid var(--border);
-      border-radius: 1.25rem;
-      overflow: hidden;
-      background: var(--surface);
-      box-shadow: 0 1.25rem 5rem #05040b70;
-    }
-    .auth-art { position: relative; background: #221732; min-height: 100%; }
-    .auth-art img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
-    .auth-art::after {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background: linear-gradient(180deg, #1a142942 0%, transparent 38%, #0b091f3b 100%);
-    }
-    .auth-content {
-      display: grid;
-      align-content: center;
-      padding: clamp(1.75rem, 4vw, 4.25rem);
-    }
-    @media (max-width: 55rem) {
-      .auth-layout { grid-template-columns: minmax(0, .82fr) minmax(0, 1fr); }
-      .auth-content { padding: clamp(1.25rem, 4vw, 2.25rem); }
-    }
-    @media (max-width: 42rem) {
-      .auth-layout { display: block; max-width: 31rem; min-height: auto; border-radius: 1rem; }
-      .auth-art { min-height: 8rem; }
-      .auth-art img { object-position: center 40%; }
-      .auth-content { padding: 1.5rem; }
-    }
-    @media (max-width: 23rem) {
-      .auth-art { min-height: 6rem; }
-      .auth-content { padding: 1.125rem; }
-    }
-  `,
+  templateUrl: './auth-layout.html',
+  styleUrl: './auth-layout.scss',
 })
 export class AuthLayout {}

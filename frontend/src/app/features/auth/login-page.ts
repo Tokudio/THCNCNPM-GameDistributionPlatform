@@ -12,31 +12,7 @@ import { applyValidationProblem, emailErrors, fieldError, nonBlank } from './aut
 @Component({
   imports: [ReactiveFormsModule, AuthField],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  template: `
-    <section class="auth-panel" aria-labelledby="page-title">
-      <h1 id="page-title">Sign in</h1>
-      @if (registered) {
-        <p class="notice notice-success" role="status">Your account is ready. Sign in to continue.</p>
-      } @else if (auth.sessionNotice()) {
-        <p class="notice notice-info" role="status">{{ auth.sessionNotice() }}</p>
-      }
-      @if (feedback()) {
-        <p class="notice notice-error" role="alert">{{ feedback() }}</p>
-      }
-      <form class="auth-form" [formGroup]="form" (ngSubmit)="submit()" [attr.aria-busy]="submitting()" novalidate>
-        <fieldset [disabled]="submitting()">
-          <app-auth-field fieldId="email" label="Email address" type="email" autocomplete="username"
-            placeholder="you@example.com" [control]="form.controls.email" [error]="emailError" />
-          <app-auth-field fieldId="password" label="Password" type="password" autocomplete="current-password"
-            placeholder="Enter your password" [control]="form.controls.password" [error]="passwordError" />
-          <button type="submit" class="button button-primary" [disabled]="form.invalid || submitting()">
-            @if (submitting()) { <span class="spinner" aria-hidden="true"></span> Signing in… }
-            @else { Sign in }
-          </button>
-        </fieldset>
-      </form>
-    </section>
-  `,
+  templateUrl: './login-page.html',
 })
 export class LoginPage {
   protected readonly auth = inject(AuthService);
