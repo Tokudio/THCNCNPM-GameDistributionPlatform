@@ -1,0 +1,118 @@
+<section class="admin-page" aria-labelledby="page-title">
+  <nav class="section-nav" aria-label="Catalog management">
+    <a class="button button-quiet" routerLink="/admin/games">Games</a>
+    <a class="button button-quiet" routerLink="/admin/categories">Categories</a>
+  </nav>
+  <header class="page-heading">
+    <h1 id="page-title">{{ gameId() ? 'Edit game' : 'Add game' }}</h1>
+    <a class="button button-secondary" routerLink="/admin/games">Back to games</a>
+  </header>
+  @if (loading()) {
+    <p class="muted" role="status">Loading game form…</p>
+  } @else if (loadError()) {
+    <p class="notice notice-error" role="alert">{{ loadError() }}</p>
+    <button type="button" class="button button-secondary" (click)="retry()">Retry</button>
+  } @else {
+    @if (error()) { <p class="notice notice-error" role="alert">{{ error() }}</p> }
+    @if (notice()) { <p class="notice notice-success" role="status">{{ notice() }}</p> }
+    @if (game(); as record) {
+      <section class="panel status-panel" aria-labelledby="status-title">
+        <div>
+          <h2 id="status-title">Visibility</h2>
+          <span class="muted">Current status {{ statusLabels[record.status] }}</span>
+        </div>
+        @let selectedStatus = confirmation();
+        @if (selectedStatus !== null) {
+          <div role="group" aria-label="Confirm status change">
+            <p>Change status to {{ statusLabels[selectedStatus] }}? The game will be {{ selectedStatus === status.Published ? 'visible' : 'hidden' }} in the public catalog.</p>
+            <div class="actions">
+              <button type="button" class="button button-primary" [disabled]="saving()" (click)="applyStatus()">Confirm status change</button>
+              <button type="button" class="button button-quiet" (click)="confirmation.set(null)">Cancel</button>
+            </div>
+          </div>
+        } @else {
+          <fieldset class="actions" [disabled]="saving() || form.dirty">
+            <label for="next-status">Change status</label>
+            <select id="next-status" [formControl]="nextStatus">
+              <option [ngValue]="status.Draft">Draft</option>
+              <option [ngValue]="status.Published">Published</option>
+              <option [ngValue]="status.Archived">Archived</option>
+            </select>
+            <button type="button" class="button button-secondary" [disabled]="nextStatus.value === record.status" (click)="requestStatusChange()">Review change</button>
+          </fieldset>
+          @if (form.dirty) { <small>Save your edits before changing visibility.</small> }
+        }
+      </section>
+    } @else {
+      <p class="muted">New games are saved as drafts.</p>
+    }
+
+    <form [formGroup]="form" (ngSubmit)="save()" [attr.aria-busy]="saving()" novalidate>
+      <fieldset class="form-stack" [disabled]="saving() || confirmation() !== null">
+        <section class="panel" aria-labelledby="details-title">
+          <h2 id="details-title">Game details</h2>
+          <div class="form-grid">
+            <div class="field"><label for="game-title">Title</label><input id="game-title" formControlName="title" maxlength="200" required /></div>
+            <div class="field">
+              <label for="game-slug">Slug</label>
+              <input id="game-slug" formControlName="slug" maxlength="200" required aria-describedby="slug-help" />
+              <small id="slug-help">Use lowercase letters, digits and hyphens.</small>
+            </div>
+            <div class="field full"><label for="game-description">Description</label><textarea id="game-description" formControlName="description" rows="4" required></textarea></div>
+            <div class="field">
+              <label for="game-price">Price</label>
+              <input id="game-price" type="number" min="0" step="0.01" formControlName="price" required
+                [attr.aria-invalid]="priceError ? 'true' : null" [attr.aria-describedby]="priceError ? 'price-error' : null" />
+              @if (priceError) { <small id="price-error">{{ priceError }}</small> }
+            </div>
+            <div class="field"><label for="game-currency">Currency code</label><input id="game-currency" formControlName="currency" maxlength="3" required /></div>
+            <div class="field"><label for="game-discount">Discount (%)</label><input id="game-discount" type="number" min="0" max="100" step="1" formControlName="discountPercent" required /></div>
+            <div class="field"><label for="release-date">Release date</label><input id="release-date" type="date" formControlName="releaseDate" /></div>
+            <div class="field"><label for="developer">Developer</label><input id="developer" formControlName="developer" maxlength="100" /></div>
+            <div class="field"><label for="publisher">Publisher</label><input id="publisher" formControlName="publisher" maxlength="100" /></div>
+            <div class="field"><label for="minimum-requirements">Minimum requirements</label><textarea id="minimum-requirements" formControlName="minimumRequirements" rows="3"></textarea></div>
+            <div class="field"><label for="recommended-requirements">Recommended requirements</label><textarea id="recommended-requirements" formControlName="recommendedRequirements" rows="3"></textarea></div>
+          </div>
+        </section>
+        <section class="panel" aria-labelledby="categories-title">
+          <h2 id="categories-title">Categories</h2>
+          <div class="category-options">
+            @for (category of categories(); track category.id) {
+              <label><input type="checkbox" #selected [checked]="form.controls.categoryIds.value.includes(category.id)"
+                (change)="toggleCategory(category.id, selected.checked)" /> {{ category.name }}{{ category.isActive ? '' : ' (inactive)' }}</label>
+            } @empty {
+              <p class="muted">No categories are available.</p>
+            }
+          </div>
+          @if (form.controls.categoryIds.invalid) { <p class="notice notice-error" role="alert">Select up to 100 categories.</p> }
+        </section>
+        <section class="panel" aria-labelledby="media-title">
+          <h2 id="media-title">Media</h2>
+          <div class="form-grid">
+            <div class="field"><label for="cover-url">Cover image URL</label><input id="cover-url" type="url" formControlName="coverImageUrl" maxlength="500" /></div>
+            <div class="field"><label for="banner-url">Banner image URL</label><input id="banner-url" type="url" formControlName="bannerImageUrl" maxlength="500" /></div>
+            <div class="field full"><label for="trailer-url">Trailer URL</label><input id="trailer-url" type="url" formControlName="trailerUrl" maxlength="500" /></div>
+          </div>
+          <small>Use absolute HTTP or HTTPS URLs.</small>
+          @for (item of media.controls; track item; let index = $index) {
+            <fieldset class="media-row" [formGroup]="item">
+              <legend>Media item {{ index + 1 }}</legend>
+              <div class="field"><label [for]="'media-url-' + index">URL</label><input [id]="'media-url-' + index" type="url" formControlName="mediaUrl" maxlength="500" required /></div>
+              <div class="field">
+                <label [for]="'media-type-' + index">Type</label>
+                <select [id]="'media-type-' + index" formControlName="type"><option [ngValue]="mediaType.Image">Image</option><option [ngValue]="mediaType.Video">Video</option></select>
+              </div>
+              <div class="field"><label [for]="'media-order-' + index">Order</label><input [id]="'media-order-' + index" type="number" min="0" step="1" formControlName="displayOrder" required /></div>
+              <button type="button" class="button button-quiet" (click)="removeMedia(index)" [attr.aria-label]="'Remove media item ' + (index + 1)">Remove</button>
+            </fieldset>
+          }
+          <button type="button" class="button button-secondary add-media" (click)="addMedia()" [disabled]="media.length >= 100">Add media URL</button>
+        </section>
+        <div class="actions">
+          <button type="submit" class="button button-primary" [disabled]="form.invalid || saving()">{{ saving() ? 'Working…' : gameId() ? 'Save changes' : 'Create draft' }}</button>
+          <a class="button button-quiet" routerLink="/admin/games">Cancel</a>
+        </div>
+      </fieldset>
+    </form>
+  }
+</section>

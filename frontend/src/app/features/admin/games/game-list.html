@@ -1,0 +1,86 @@
+<section class="admin-page" aria-labelledby="page-title">
+  <nav class="section-nav" aria-label="Catalog management">
+    <a class="button button-quiet" routerLink="/admin/games" aria-current="page">Games</a>
+    <a class="button button-quiet" routerLink="/admin/categories">Categories</a>
+  </nav>
+  <header class="page-heading">
+    <h1 id="page-title">Games</h1>
+    <a class="button button-primary" routerLink="/admin/games/new">Add game</a>
+  </header>
+  <form class="panel filters" [formGroup]="filters" (ngSubmit)="apply()" novalidate>
+    <div class="field">
+      <label for="game-search">Search title</label>
+      <input id="game-search" type="search" formControlName="search" maxlength="200" />
+    </div>
+    <div class="field">
+      <label for="game-category">Category</label>
+      <select id="game-category" formControlName="categoryId">
+        <option value="">All categories</option>
+        @for (category of categoryOptions().categories; track category.id) {
+          <option [value]="category.id">{{ category.name }}{{ category.isActive ? '' : ' (inactive)' }}</option>
+        }
+      </select>
+    </div>
+    <div class="field">
+      <label for="game-filter-status">Status</label>
+      <select id="game-filter-status" formControlName="status">
+        <option [ngValue]="null">All statuses</option>
+        <option [ngValue]="statuses.Draft">Draft</option>
+        <option [ngValue]="statuses.Published">Published</option>
+        <option [ngValue]="statuses.Archived">Archived</option>
+      </select>
+    </div>
+    <div class="field">
+      <label for="minimum-price">Minimum price</label>
+      <input id="minimum-price" type="number" min="0" formControlName="minPrice" />
+    </div>
+    <div class="field">
+      <label for="maximum-price">Maximum price</label>
+      <input id="maximum-price" type="number" min="0" formControlName="maxPrice" />
+    </div>
+    <div class="field">
+      <label for="game-sort">Sort by</label>
+      <select id="game-sort" formControlName="sort">
+        <option [ngValue]="sort.Newest">Newest</option>
+        <option [ngValue]="sort.Title">Title</option>
+        <option [ngValue]="sort.PriceAsc">Lowest price</option>
+        <option [ngValue]="sort.PriceDesc">Highest price</option>
+      </select>
+    </div>
+    <div class="actions">
+      <button type="submit" class="button button-secondary" [disabled]="filters.invalid || invalidPriceRange">Apply filters</button>
+    </div>
+  </form>
+  @if (invalidPriceRange) { <p class="notice notice-error" role="alert">Minimum price cannot exceed maximum price.</p> }
+  @if (categoryOptions().error) { <p class="notice notice-error" role="alert">{{ categoryOptions().error }}</p> }
+  <section class="panel results" aria-label="Games list" [attr.aria-busy]="state().loading">
+    @let result = state();
+    @if (result.loading) {
+      <p role="status" class="muted">Loading games…</p>
+    } @else if ('error' in result) {
+      <p class="notice notice-error" role="alert">{{ result.error }}</p>
+      <button type="button" class="button button-secondary" (click)="retry()">Retry</button>
+    } @else {
+      <p class="muted" role="status">{{ result.page.totalCount }} games found</p>
+      <ul class="game-list">
+        @for (game of result.page.items; track game.id) {
+          <li>
+            <div class="game-title"><strong>{{ game.title }}</strong><small>{{ game.slug }}</small></div>
+            <span class="status" [class.published]="game.status === statuses.Published" [class.archived]="game.status === statuses.Archived">{{ statusLabels[game.status] }}</span>
+            <span class="price">{{ game.price | number:'1.0-2' }} {{ game.currency }}</span>
+            <a class="button button-secondary" [routerLink]="['/admin/games', game.id, 'edit']" [attr.aria-label]="'Edit ' + game.title">Edit</a>
+          </li>
+        } @empty {
+          <li class="muted">No games match these filters.</li>
+        }
+      </ul>
+      @if (result.page.totalPages > 1) {
+        <nav class="pagination" aria-label="Game results pages">
+          <button type="button" class="button button-secondary" (click)="goTo(result.page.pageNumber - 1)" [disabled]="result.page.pageNumber <= 1">Previous</button>
+          <span>Page {{ result.page.pageNumber }} of {{ result.page.totalPages }}</span>
+          <button type="button" class="button button-secondary" (click)="goTo(result.page.pageNumber + 1)" [disabled]="result.page.pageNumber >= result.page.totalPages">Next</button>
+        </nav>
+      }
+    }
+  </section>
+</section>

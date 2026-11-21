@@ -1,0 +1,79 @@
+<section class="admin-page" aria-labelledby="page-title">
+  <nav class="section-nav" aria-label="Catalog management">
+    <a class="button button-quiet" routerLink="/admin/games">Games</a>
+    <a class="button button-quiet" routerLink="/admin/categories" aria-current="page">Categories</a>
+  </nav>
+  <header class="page-heading">
+    <h1 id="page-title">Categories</h1>
+    <button type="button" class="button button-primary" [disabled]="busy() || loading()" (click)="edit(null)">New category</button>
+  </header>
+  @if (notice()) { <p class="notice notice-success" role="status">{{ notice() }}</p> }
+  @if (actionError()) { <p class="notice notice-error" role="alert">{{ actionError() }}</p> }
+  @if (deleting(); as category) {
+    <div class="panel confirmation" role="group" aria-label="Confirm category deletion">
+      <p>Delete <strong>{{ category.name }}</strong>? Categories assigned to games must be unlinked first.</p>
+      <div class="actions">
+        <button type="button" class="button button-secondary" [disabled]="busy()" (click)="remove()">Confirm delete</button>
+        <button type="button" class="button button-quiet" [disabled]="busy()" (click)="deleting.set(null)">Cancel</button>
+      </div>
+    </div>
+  }
+  <div class="category-layout">
+    <section class="panel" aria-labelledby="category-list-title" [attr.aria-busy]="loading()">
+      <h2 id="category-list-title">Category list</h2>
+      @if (loading()) {
+        <p class="muted" role="status">Loading categories…</p>
+      } @else if (loadError()) {
+        <p class="notice notice-error" role="alert">{{ loadError() }}</p>
+        <button type="button" class="button button-secondary" (click)="load()">Retry</button>
+      } @else {
+        <ul class="category-list">
+          @for (category of categories(); track category.id) {
+            <li>
+              <div class="category-summary">
+                <strong>{{ category.name }}</strong>
+                <span class="muted">{{ category.slug }}</span>
+                <small>{{ category.isActive ? 'Active' : 'Inactive' }}{{ category.isDefault ? ' · Default' : '' }}</small>
+              </div>
+              <div class="actions">
+                <button type="button" class="button button-secondary" [disabled]="busy() || loading()" (click)="edit(category)" [attr.aria-label]="'Edit ' + category.name">Edit</button>
+                @if (!category.isDefault) {
+                  <button type="button" class="button button-quiet" [disabled]="busy() || loading()" (click)="confirmDelete(category)" [attr.aria-label]="'Delete ' + category.name">Delete</button>
+                }
+              </div>
+            </li>
+          } @empty {
+            <li class="muted">There are no categories yet.</li>
+          }
+        </ul>
+      }
+    </section>
+    <section class="panel" aria-labelledby="category-form-title">
+      <h2 id="category-form-title">{{ editing() ? 'Edit category' : 'Add category' }}</h2>
+      <form [formGroup]="form" (ngSubmit)="save()" novalidate>
+        <fieldset [disabled]="busy() || loading()">
+          <div class="field">
+            <label for="category-name">Name</label>
+            <input #nameInput id="category-name" formControlName="name" maxlength="100" required />
+          </div>
+          <div class="field">
+            <label for="category-slug">Slug</label>
+            <input id="category-slug" formControlName="slug" maxlength="150" required aria-describedby="category-slug-help" />
+            <small id="category-slug-help">{{ editing()?.isDefault ? 'The slug of a default category is fixed.' : 'Use lowercase letters, digits and hyphens.' }}</small>
+          </div>
+          <div class="field">
+            <label for="category-description">Description</label>
+            <textarea id="category-description" formControlName="description" maxlength="1000" rows="3"></textarea>
+          </div>
+          <label><input type="checkbox" formControlName="isActive" /> Visible in the public catalog</label>
+          <div class="actions">
+            <button type="submit" class="button button-primary" [disabled]="form.invalid || busy() || loading()">
+              {{ busy() ? 'Working…' : editing() ? 'Save category' : 'Add category' }}
+            </button>
+            @if (editing()) { <button type="button" class="button button-quiet" (click)="edit(null)">Cancel edit</button> }
+          </div>
+        </fieldset>
+      </form>
+    </section>
+  </div>
+</section>

@@ -1,0 +1,18 @@
+@use '../admin';
+@include admin.page;
+@include admin.fields;
+
+.status-panel { display: flex; justify-content: space-between; align-items: center; gap: .85rem; flex-wrap: wrap; margin-bottom: 1rem; }
+.status-panel h2 { margin-bottom: .25rem; }
+.status-panel select { width: auto; }
+.status-panel p { margin: 0 0 .5rem; }
+.form-stack { display: grid; gap: 1rem; }
+.form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .85rem 1rem; }
+.full { grid-column: 1 / -1; }
+.category-options { display: flex; flex-wrap: wrap; gap: .65rem 1.5rem; }
+.category-options label { overflow-wrap: anywhere; }
+.media-row { display: grid; grid-template-columns: minmax(0, 1fr) 8rem 6rem auto; gap: .75rem; align-items: end; margin-top: 1.1rem; }
+.media-row legend { margin-bottom: .35rem; color: var(--muted); }
+.add-media { margin-top: .85rem; }
+@media (max-width: 43rem) { .media-row { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); } .media-row .field:first-of-type { grid-column: 1 / -1; } }
+@media (max-width: 31rem) { .form-grid { grid-template-columns: 1fr; } }

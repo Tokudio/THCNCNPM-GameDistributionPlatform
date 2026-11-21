@@ -1,0 +1,20 @@
+@use '../admin';
+@include admin.page;
+@include admin.fields;
+
+.filters { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: .85rem; margin-bottom: 1rem; align-items: end; }
+.results > p:first-child { margin-top: 0; }
+.game-list { list-style: none; margin: 0; padding: 0; }
+.game-list li { display: grid; grid-template-columns: minmax(0, 1fr) 7rem minmax(6rem, auto) auto; align-items: center; gap: 1rem; padding: .9rem 0; border-top: 1px solid var(--border); }
+.game-title { display: grid; overflow-wrap: anywhere; }
+.price { overflow-wrap: anywhere; }
+.status { justify-self: start; padding: .125rem .6rem; border-radius: 1rem; background: #342749; color: var(--accent-text); font-size: .875rem; }
+.published { background: #1e3631; color: var(--success); }
+.archived { background: var(--raised); color: var(--muted); }
+.pagination { margin-top: 1rem; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .5rem; }
+@media (max-width: 53rem) { .filters { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 33rem) {
+  .game-list li { grid-template-columns: minmax(0, 1fr) auto; gap: .55rem; }
+  .game-list a { justify-self: end; }
+}
+@media (max-width: 23rem) { .filters { grid-template-columns: 1fr; } }

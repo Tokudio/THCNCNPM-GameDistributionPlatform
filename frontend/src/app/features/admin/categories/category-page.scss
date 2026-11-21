@@ -1,0 +1,13 @@
+@use '../admin';
+@include admin.page;
+@include admin.fields;
+
+.category-layout { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, .8fr); gap: 1rem; align-items: start; }
+.category-list { display: grid; list-style: none; padding: 0; margin: 0; }
+.category-list li { display: flex; gap: .75rem; align-items: center; justify-content: space-between; padding: .9rem 0; border-top: 1px solid var(--border); }
+.category-summary { display: grid; min-width: 0; overflow-wrap: anywhere; }
+.confirmation { margin-bottom: 1rem; }
+.confirmation p { margin-top: 0; overflow-wrap: anywhere; }
+fieldset { display: grid; gap: 1rem; }
+@media (max-width: 48rem) { .category-layout { grid-template-columns: 1fr; } }
+@media (max-width: 23rem) { .category-list li { align-items: flex-start; flex-direction: column; } }
