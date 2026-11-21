@@ -129,6 +129,12 @@ public sealed class GlobalExceptionHandler : IExceptionHandler
                 conflict.Message,
                 "https://tools.ietf.org/html/rfc9110#section-15.5.10"
             ),
+            NotFoundException notFound => (
+                StatusCodes.Status404NotFound,
+                "Not Found",
+                notFound.Message,
+                "https://tools.ietf.org/html/rfc9110#section-15.5.5"
+            ),
             InternalServerException => (
                 StatusCodes.Status500InternalServerError,
                 "Internal Server Error",

@@ -67,6 +67,8 @@ builder.Services.AddOptions<JwtOptions>()
 // Register Application & Infrastructure Services
 builder.Services.AddScoped<IJwtService, JwtService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<ICategoryService, CategoryService>();
+builder.Services.AddScoped<IGameService, GameService>();
 
 // Configure JWT Authentication
 var jwtConfig = builder.Configuration.GetSection(JwtOptions.SectionName).Get<JwtOptions>()

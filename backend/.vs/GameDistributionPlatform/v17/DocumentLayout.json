@@ -44,7 +44,7 @@
               "RelativeDocumentMoniker": "src\\GameDistributionPlatform.WebApi\\Program.cs",
               "ToolTip": "D:\\Workspace\\GameDistributionPlatform\\backend\\src\\GameDistributionPlatform.WebApi\\Program.cs",
               "RelativeToolTip": "src\\GameDistributionPlatform.WebApi\\Program.cs",
-              "ViewState": "AgIAAEEBAAAAAAAAAAAqwAgAAAA3AAAAAAAAAA==",
+              "ViewState": "AgIAAGoBAAAAAAAAAAAqwAgAAAA3AAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2026-11-19T08:47:37.309Z",
               "EditorCaption": ""
@@ -59,8 +59,7 @@
               "RelativeToolTip": "src\\GameDistributionPlatform.WebApi\\Properties\\launchSettings.json",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAABgAAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
-              "WhenOpened": "2026-11-19T08:46:23.12Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-11-19T08:46:23.12Z"
             },
             {
               "$type": "Document",
@@ -72,8 +71,7 @@
               "RelativeToolTip": "src\\GameDistributionPlatform.Application\\DTOs\\AuthResponse.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAgAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-11-19T08:43:06.192Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-11-19T08:43:06.192Z"
             }
           ]
         }
