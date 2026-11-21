@@ -52,31 +52,90 @@
         <section class="panel" aria-labelledby="details-title">
           <h2 id="details-title">Game details</h2>
           <div class="form-grid">
-            <div class="field"><label for="game-title">Title</label><input id="game-title" formControlName="title" maxlength="200" required /></div>
             <div class="field">
-              <label for="game-slug">Slug</label>
-              <input id="game-slug" formControlName="slug" maxlength="200" required aria-describedby="slug-help" />
-              <small id="slug-help">Use lowercase letters, digits and hyphens.</small>
+              @let titleError = fieldError(form.controls.title, 'Title');
+              <label for="game-title">Title</label>
+              <input id="game-title" formControlName="title" maxlength="200" required
+                [attr.aria-invalid]="titleError ? 'true' : null" [attr.aria-describedby]="titleError ? 'title-error' : null" />
+              @if (titleError) { <small id="title-error" class="field-error">{{ titleError }}</small> }
             </div>
-            <div class="field full"><label for="game-description">Description</label><textarea id="game-description" formControlName="description" rows="4" required></textarea></div>
             <div class="field">
+              @let slugError = fieldError(form.controls.slug, 'Slug', 'Use lowercase letters and digits separated by single hyphens.');
+              <label for="game-slug">Slug</label>
+              <input id="game-slug" formControlName="slug" maxlength="200" required
+                [attr.aria-invalid]="slugError ? 'true' : null" [attr.aria-describedby]="slugError ? 'slug-error' : 'slug-help'" />
+              @if (slugError) { <small id="slug-error" class="field-error">{{ slugError }}</small> }
+              @else { <small id="slug-help">Use lowercase letters, digits and hyphens.</small> }
+            </div>
+            <div class="field full">
+              @let descriptionError = fieldError(form.controls.description, 'Description');
+              <label for="game-description">Description</label>
+              <textarea id="game-description" formControlName="description" rows="4" required
+                [attr.aria-invalid]="descriptionError ? 'true' : null" [attr.aria-describedby]="descriptionError ? 'description-error' : null"></textarea>
+              @if (descriptionError) { <small id="description-error" class="field-error">{{ descriptionError }}</small> }
+            </div>
+            <div class="field">
+              @let priceMessage = priceError;
               <label for="game-price">Price</label>
               <input id="game-price" type="number" min="0" step="0.01" formControlName="price" required
-                [attr.aria-invalid]="priceError ? 'true' : null" [attr.aria-describedby]="priceError ? 'price-error' : null" />
-              @if (priceError) { <small id="price-error">{{ priceError }}</small> }
+                [attr.aria-invalid]="priceMessage ? 'true' : null" [attr.aria-describedby]="priceMessage ? 'price-error' : null" />
+              @if (priceMessage) { <small id="price-error" class="field-error">{{ priceMessage }}</small> }
             </div>
-            <div class="field"><label for="game-currency">Currency code</label><input id="game-currency" formControlName="currency" maxlength="3" required /></div>
-            <div class="field"><label for="game-discount">Discount (%)</label><input id="game-discount" type="number" min="0" max="100" step="1" formControlName="discountPercent" required /></div>
-            <div class="field"><label for="release-date">Release date</label><input id="release-date" type="date" formControlName="releaseDate" /></div>
-            <div class="field"><label for="developer">Developer</label><input id="developer" formControlName="developer" maxlength="100" /></div>
-            <div class="field"><label for="publisher">Publisher</label><input id="publisher" formControlName="publisher" maxlength="100" /></div>
-            <div class="field"><label for="minimum-requirements">Minimum requirements</label><textarea id="minimum-requirements" formControlName="minimumRequirements" rows="3"></textarea></div>
-            <div class="field"><label for="recommended-requirements">Recommended requirements</label><textarea id="recommended-requirements" formControlName="recommendedRequirements" rows="3"></textarea></div>
+            <div class="field">
+              @let currencyError = fieldError(form.controls.currency, 'Currency code', 'Enter a three-letter currency code such as VND.');
+              <label for="game-currency">Currency code</label>
+              <input id="game-currency" formControlName="currency" maxlength="3" required
+                [attr.aria-invalid]="currencyError ? 'true' : null" [attr.aria-describedby]="currencyError ? 'currency-error' : null" />
+              @if (currencyError) { <small id="currency-error" class="field-error">{{ currencyError }}</small> }
+            </div>
+            <div class="field">
+              @let discountError = fieldError(form.controls.discountPercent, 'Discount', 'Enter a whole number from 0 to 100.');
+              <label for="game-discount">Discount (%)</label>
+              <input id="game-discount" type="number" min="0" max="100" step="1" formControlName="discountPercent" required
+                [attr.aria-invalid]="discountError ? 'true' : null" [attr.aria-describedby]="discountError ? 'discount-error' : null" />
+              @if (discountError) { <small id="discount-error" class="field-error">{{ discountError }}</small> }
+            </div>
+            <div class="field">
+              @let dateError = fieldError(form.controls.releaseDate, 'Release date', 'Enter a valid release date with a year from 0001 to 9999.');
+              <label for="release-date">Release date</label>
+              <input id="release-date" type="date" formControlName="releaseDate"
+                [attr.aria-invalid]="dateError ? 'true' : null" [attr.aria-describedby]="dateError ? 'date-error' : null" />
+              @if (dateError) { <small id="date-error" class="field-error">{{ dateError }}</small> }
+            </div>
+            <div class="field">
+              @let developerError = fieldError(form.controls.developer, 'Developer');
+              <label for="developer">Developer</label>
+              <input id="developer" formControlName="developer" maxlength="100"
+                [attr.aria-invalid]="developerError ? 'true' : null" [attr.aria-describedby]="developerError ? 'developer-error' : null" />
+              @if (developerError) { <small id="developer-error" class="field-error">{{ developerError }}</small> }
+            </div>
+            <div class="field">
+              @let publisherError = fieldError(form.controls.publisher, 'Publisher');
+              <label for="publisher">Publisher</label>
+              <input id="publisher" formControlName="publisher" maxlength="100"
+                [attr.aria-invalid]="publisherError ? 'true' : null" [attr.aria-describedby]="publisherError ? 'publisher-error' : null" />
+              @if (publisherError) { <small id="publisher-error" class="field-error">{{ publisherError }}</small> }
+            </div>
+            <div class="field">
+              @let minimumError = fieldError(form.controls.minimumRequirements, 'Minimum requirements');
+              <label for="minimum-requirements">Minimum requirements</label>
+              <textarea id="minimum-requirements" formControlName="minimumRequirements" rows="3"
+                [attr.aria-invalid]="minimumError ? 'true' : null" [attr.aria-describedby]="minimumError ? 'minimum-error' : null"></textarea>
+              @if (minimumError) { <small id="minimum-error" class="field-error">{{ minimumError }}</small> }
+            </div>
+            <div class="field">
+              @let recommendedError = fieldError(form.controls.recommendedRequirements, 'Recommended requirements');
+              <label for="recommended-requirements">Recommended requirements</label>
+              <textarea id="recommended-requirements" formControlName="recommendedRequirements" rows="3"
+                [attr.aria-invalid]="recommendedError ? 'true' : null" [attr.aria-describedby]="recommendedError ? 'recommended-error' : null"></textarea>
+              @if (recommendedError) { <small id="recommended-error" class="field-error">{{ recommendedError }}</small> }
+            </div>
           </div>
         </section>
         <section class="panel" aria-labelledby="categories-title">
           <h2 id="categories-title">Categories</h2>
-          <div class="category-options">
+          <div class="category-options" role="group" aria-labelledby="categories-title"
+            [attr.aria-invalid]="categoryError ? 'true' : null" [attr.aria-describedby]="categoryError ? 'category-error' : null">
             @for (category of categories(); track category.id) {
               <label><input type="checkbox" #selected [checked]="form.controls.categoryIds.value.includes(category.id)"
                 (change)="toggleCategory(category.id, selected.checked)" /> {{ category.name }}{{ category.isActive ? '' : ' (inactive)' }}</label>
@@ -84,28 +143,67 @@
               <p class="muted">No categories are available.</p>
             }
           </div>
-          @if (form.controls.categoryIds.invalid) { <p class="notice notice-error" role="alert">Select up to 100 categories.</p> }
+          @if (categoryError) { <p id="category-error" class="field-error" role="alert">{{ categoryError }}</p> }
         </section>
         <section class="panel" aria-labelledby="media-title">
           <h2 id="media-title">Media</h2>
           <div class="form-grid">
-            <div class="field"><label for="cover-url">Cover image URL</label><input id="cover-url" type="url" formControlName="coverImageUrl" maxlength="500" /></div>
-            <div class="field"><label for="banner-url">Banner image URL</label><input id="banner-url" type="url" formControlName="bannerImageUrl" maxlength="500" /></div>
-            <div class="field full"><label for="trailer-url">Trailer URL</label><input id="trailer-url" type="url" formControlName="trailerUrl" maxlength="500" /></div>
+            <div class="field">
+              @let coverError = fieldError(form.controls.coverImageUrl, 'Cover image URL');
+              <label for="cover-url">Cover image URL</label>
+              <input id="cover-url" type="url" formControlName="coverImageUrl" maxlength="500"
+                [attr.aria-invalid]="coverError ? 'true' : null" [attr.aria-describedby]="coverError ? 'cover-error' : 'media-help'" />
+              @if (coverError) { <small id="cover-error" class="field-error">{{ coverError }}</small> }
+            </div>
+            <div class="field">
+              @let bannerError = fieldError(form.controls.bannerImageUrl, 'Banner image URL');
+              <label for="banner-url">Banner image URL</label>
+              <input id="banner-url" type="url" formControlName="bannerImageUrl" maxlength="500"
+                [attr.aria-invalid]="bannerError ? 'true' : null" [attr.aria-describedby]="bannerError ? 'banner-error' : 'media-help'" />
+              @if (bannerError) { <small id="banner-error" class="field-error">{{ bannerError }}</small> }
+            </div>
+            <div class="field full">
+              @let trailerError = fieldError(form.controls.trailerUrl, 'Trailer URL');
+              <label for="trailer-url">Trailer URL</label>
+              <input id="trailer-url" type="url" formControlName="trailerUrl" maxlength="500"
+                [attr.aria-invalid]="trailerError ? 'true' : null" [attr.aria-describedby]="trailerError ? 'trailer-error' : 'media-help'" />
+              @if (trailerError) { <small id="trailer-error" class="field-error">{{ trailerError }}</small> }
+            </div>
           </div>
-          <small>Use absolute HTTP or HTTPS URLs.</small>
+          <small id="media-help">Use absolute HTTP or HTTPS URLs.</small>
           @for (item of media.controls; track item; let index = $index) {
-            <fieldset class="media-row" [formGroup]="item">
+            @let rowError = fieldError(item, 'Media item');
+            <fieldset class="media-row" [formGroup]="item" [attr.aria-describedby]="rowError ? 'media-row-error-' + index : null">
               <legend>Media item {{ index + 1 }}</legend>
-              <div class="field"><label [for]="'media-url-' + index">URL</label><input [id]="'media-url-' + index" type="url" formControlName="mediaUrl" maxlength="500" required /></div>
               <div class="field">
-                <label [for]="'media-type-' + index">Type</label>
-                <select [id]="'media-type-' + index" formControlName="type"><option [ngValue]="mediaType.Image">Image</option><option [ngValue]="mediaType.Video">Video</option></select>
+                @let urlError = mediaUrlError(item, index);
+                <label [for]="'media-url-' + index">URL</label>
+                <input [id]="'media-url-' + index" type="url" formControlName="mediaUrl" maxlength="500" required
+                  [attr.aria-invalid]="urlError ? 'true' : null" [attr.aria-describedby]="urlError ? 'media-url-error-' + index : 'media-help'" />
+                @if (urlError) { <small [id]="'media-url-error-' + index" class="field-error">{{ urlError }}</small> }
               </div>
-              <div class="field"><label [for]="'media-order-' + index">Order</label><input [id]="'media-order-' + index" type="number" min="0" step="1" formControlName="displayOrder" required /></div>
+              <div class="field">
+                @let typeError = fieldError(item.controls.type, 'Media type', 'Choose Image or Video.');
+                <label [for]="'media-type-' + index">Type</label>
+                <select [id]="'media-type-' + index" formControlName="type"
+                  [attr.aria-invalid]="typeError ? 'true' : null" [attr.aria-describedby]="typeError ? 'media-type-error-' + index : null">
+                  <option [ngValue]="mediaType.Image">Image</option>
+                  <option [ngValue]="mediaType.Video">Video</option>
+                </select>
+                @if (typeError) { <small [id]="'media-type-error-' + index" class="field-error">{{ typeError }}</small> }
+              </div>
+              <div class="field">
+                @let orderError = fieldError(item.controls.displayOrder, 'Display order', 'Enter a whole number from 0 to 2,147,483,647.');
+                <label [for]="'media-order-' + index">Order</label>
+                <input [id]="'media-order-' + index" type="number" min="0" max="2147483647" step="1" formControlName="displayOrder" required
+                  [attr.aria-invalid]="orderError ? 'true' : null" [attr.aria-describedby]="orderError ? 'media-order-error-' + index : null" />
+                @if (orderError) { <small [id]="'media-order-error-' + index" class="field-error">{{ orderError }}</small> }
+              </div>
               <button type="button" class="button button-quiet" (click)="removeMedia(index)" [attr.aria-label]="'Remove media item ' + (index + 1)">Remove</button>
+              @if (rowError) { <small [id]="'media-row-error-' + index" class="field-error full">{{ rowError }}</small> }
             </fieldset>
           }
+          @if (mediaError) { <p class="field-error" role="alert">{{ mediaError }}</p> }
           <button type="button" class="button button-secondary add-media" (click)="addMedia()" [disabled]="media.length >= 100">Add media URL</button>
         </section>
         <div class="actions">

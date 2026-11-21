@@ -93,6 +93,15 @@ describe('Admin catalog routes and forms', () => {
     harness.detectChanges();
   }
 
+  function enterDraftDetails(price = '14.50'): void {
+    enter('#game-title', record.title);
+    enter('#game-slug', record.slug);
+    enter('#game-description', record.description);
+    enter('#game-price', price);
+  }
+
+  const createDraftButton = () => view().querySelector<HTMLButtonElement>('button[type=submit]')!;
+
   it('shows game list loading, attaches the real interceptor context and renders the result', async () => {
     await signIn();
     await open('/admin/games');
@@ -163,7 +172,8 @@ describe('Admin catalog routes and forms', () => {
     harness.detectChanges();
     click('Add media URL');
     enter('#media-url-0', 'https://example.com/screenshot.webp');
-    submit();
+    expect(createDraftButton().disabled).toBe(false);
+    click('Create draft');
 
     const create = http.expectOne({ method: 'POST', url: gamesUrl });
     expect(create.request.body).toMatchObject({
@@ -229,6 +239,165 @@ describe('Admin catalog routes and forms', () => {
     expect(view().querySelector('#price-error')?.textContent).toContain('preserve cent precision');
     submit();
     http.expectNone({ method: 'POST', url: gamesUrl });
+  });
+
+  it('explains why Create draft is disabled for missing or invalid game details', async () => {
+    await signIn();
+    await open('/admin/games/new');
+    http.expectOne(adminCategoryUrl).flush([]);
+    harness.detectChanges();
+
+    for (const field of ['title', 'slug', 'description', 'price']) {
+      expect(view().querySelector(`#${field}-error`)?.textContent).toContain('is required');
+    }
+    expect(createDraftButton().disabled).toBe(true);
+
+    enter('#game-title', '   ');
+    enter('#game-description', '   ');
+    enter('#game-slug', 'Signal--Tower');
+    enter('#game-price', '1.234');
+    enter('#game-currency', 'V1');
+    enter('#game-discount', '1.5');
+
+    expect(view().querySelector('#title-error')?.textContent).toContain('is required');
+    expect(view().querySelector('#description-error')?.textContent).toContain('is required');
+    expect(view().querySelector('#slug-error')?.textContent).toContain('single hyphens');
+    expect(view().querySelector('#price-error')?.textContent).toContain('two decimal places');
+    expect(view().querySelector('#game-price')?.getAttribute('aria-describedby')).toBe('price-error');
+    expect(view().querySelector('#currency-error')?.textContent).toContain('three-letter');
+    expect(view().querySelector('#discount-error')?.textContent).toContain('whole number');
+    submit();
+    http.expectNone({ method: 'POST', url: gamesUrl });
+  });
+
+  it('shows errors on invalid URLs, empty media rows, fractional media orders and duplicate media', async () => {
+    await signIn();
+    await open('/admin/games/new');
+    http.expectOne(adminCategoryUrl).flush([]);
+    harness.detectChanges();
+    enterDraftDetails();
+    enter('#cover-url', 'file:///cover.png');
+    enter('#banner-url', 'https://user:pass@example.com/banner.png');
+    enter('#trailer-url', '/trailer');
+    for (const field of ['cover', 'banner', 'trailer']) {
+      expect(view().querySelector(`#${field}-error`)?.textContent).toContain('absolute HTTP or HTTPS URL');
+      enter(`#${field}-url`, '');
+    }
+
+    click('Add media URL');
+    expect(view().querySelector('#media-url-error-0')?.textContent).toContain('Media URL is required');
+    expect(createDraftButton().disabled).toBe(true);
+    enter('#media-url-0', 'https://EXAMPLE.com/screenshot.webp');
+    enter('#media-order-0', '1.5');
+    expect(view().querySelector('#media-order-error-0')?.textContent).toContain('whole number');
+    enter('#media-order-0', '1');
+    expect(createDraftButton().disabled).toBe(false);
+
+    click('Add media URL');
+    enter('#media-url-1', 'https://example.com/screenshot.webp');
+    expect(view().querySelector('#media-url-error-1')?.textContent).toContain('already listed');
+    expect(createDraftButton().disabled).toBe(true);
+    submit();
+    http.expectNone({ method: 'POST', url: gamesUrl });
+    click('Remove media item 2');
+    expect(createDraftButton().disabled).toBe(false);
+  });
+
+  it('explains an invalid selected category ID before sending a draft', async () => {
+    await signIn();
+    await open('/admin/games/new');
+    http.expectOne(adminCategoryUrl).flush([{ ...category, id: '00000000-0000-0000-0000-000000000000' }]);
+    harness.detectChanges();
+    enterDraftDetails();
+    const checkbox = view().querySelector<HTMLInputElement>('.category-options input')!;
+    checkbox.click();
+    harness.detectChanges();
+    expect(view().querySelector('#category-error')?.textContent).toContain('valid categories');
+    expect(createDraftButton().disabled).toBe(true);
+    submit();
+    http.expectNone({ method: 'POST', url: gamesUrl });
+    checkbox.click();
+    harness.detectChanges();
+    expect(createDraftButton().disabled).toBe(false);
+  });
+
+  it('maps API validation to price, category selection and the affected media row', async () => {
+    await signIn();
+    await open('/admin/games/new');
+    http.expectOne(adminCategoryUrl).flush([category]);
+    harness.detectChanges();
+    enterDraftDetails();
+    const checkbox = view().querySelector<HTMLInputElement>('.category-options input')!;
+    checkbox.click();
+    click('Add media URL');
+    enter('#media-url-0', 'https://example.com/screenshot.webp');
+    click('Create draft');
+    http.expectOne({ method: 'POST', url: gamesUrl }).flush({
+      errors: {
+        Price: ['Enter a valid price.'],
+        '$.categoryIds[0]': ['This category ID is invalid.'],
+        'Media[0].MediaUrl': ['This media URL is invalid.'],
+      },
+    }, { status: 400, statusText: 'Bad Request' });
+    harness.detectChanges();
+
+    expect(view().querySelector('#price-error')?.textContent).toContain('valid price');
+    expect(view().querySelector('#category-error')?.textContent).toContain('category ID is invalid');
+    expect(view().querySelector('#media-url-error-0')?.textContent).toContain('media URL is invalid');
+    expect(createDraftButton().disabled).toBe(true);
+
+    enter('#game-price', '15.50');
+    enter('#media-url-0', 'https://example.com/updated.webp');
+    checkbox.click();
+    harness.detectChanges();
+    expect(createDraftButton().disabled).toBe(false);
+
+    checkbox.click();
+    click('Create draft');
+    http.expectOne({ method: 'POST', url: gamesUrl }).flush(
+      { detail: 'One or more selected categories do not exist.' }, { status: 400, statusText: 'Bad Request' },
+    );
+    harness.detectChanges();
+    expect(view().querySelector('#category-error')?.textContent).toContain('categories do not exist');
+  });
+
+  it('submits a valid free draft and distinguishes a duplicate slug from other conflicts', async () => {
+    await signIn();
+    await open('/admin/games/new');
+    http.expectOne(adminCategoryUrl).flush([]);
+    harness.detectChanges();
+    enterDraftDetails('0');
+    enter('#game-currency', 'vnd');
+    expect(createDraftButton().disabled).toBe(false);
+    click('Create draft');
+
+    const request = http.expectOne({ method: 'POST', url: gamesUrl });
+    expect(request.request.body).toMatchObject({
+      slug: record.slug, price: 0, currency: 'VND', categoryIds: [], media: [],
+      releaseDate: null, coverImageUrl: null,
+    });
+    request.flush({ detail: 'This game slug is already in use.' }, { status: 409, statusText: 'Conflict' });
+    harness.detectChanges();
+    expect(view().querySelector('#slug-error')?.textContent).toContain('slug is already in use');
+    expect(createDraftButton().disabled).toBe(true);
+    enter('#game-slug', 'different-slug');
+    expect(createDraftButton().disabled).toBe(false);
+
+    click('Create draft');
+    http.expectOne({ method: 'POST', url: gamesUrl }).flush(
+      { detail: 'The catalog changed during this operation.' }, { status: 409, statusText: 'Conflict' },
+    );
+    harness.detectChanges();
+    expect(view().querySelector('#slug-error')).toBeNull();
+    expect(view().querySelector('[role=alert]')?.textContent).toContain('The catalog changed');
+
+    click('Create draft');
+    http.expectOne({ method: 'POST', url: gamesUrl }).flush(
+      { detail: 'Internal persistence details.' }, { status: 500, statusText: 'Server Error' },
+    );
+    harness.detectChanges();
+    expect(view().querySelector('[role=alert]')?.textContent).toContain('The server could not save the game');
+    expect(view().textContent).not.toContain('Internal persistence details');
   });
 
   it('ignores a failed save from a previously opened game when the edit route is reused', async () => {

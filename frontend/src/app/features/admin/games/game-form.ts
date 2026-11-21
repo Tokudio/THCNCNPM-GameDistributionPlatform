@@ -1,6 +1,7 @@
+import { HttpErrorResponse } from '@angular/common/http';
 import { ChangeDetectionStrategy, Component, DestroyRef, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { FormBuilder, ReactiveFormsModule, ValidatorFn, Validators } from '@angular/forms';
+import { AbstractControl, FormBuilder, ReactiveFormsModule, ValidatorFn, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { Subject, catchError, combineLatest, finalize, forkJoin, of, startWith, switchMap } from 'rxjs';
 import { AdminGameService } from '../admin-game.service';
@@ -8,16 +9,24 @@ import { catalogError } from '../catalog-http';
 import { Category, GameDetails, GameInput, GameMediaInput, GameStatus, MediaType, gameStatusLabels } from '../catalog.models';
 import { CategoryService } from '../category.service';
 
-const webUrl: ValidatorFn = control => {
-  const value: string = control.value.trim();
-  if (!value) return null;
+const guidPattern = /^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i;
+const emptyGuid = '00000000-0000-0000-0000-000000000000';
+
+const requiredText: ValidatorFn = control => control.value.trim() ? null : { required: true };
+
+function normalizedWebUrl(value: string): string | null {
+  if (!/^https?:\/\//i.test(value)) return null;
   try {
     const url = new URL(value);
-    return /^https?:\/\//i.test(value) && url.hostname && !url.username && !url.password
-      ? null : { webUrl: true };
+    return url.hostname && !url.username && !url.password ? url.href : null;
   } catch {
-    return { webUrl: true };
+    return null;
   }
+}
+
+const webUrl: ValidatorFn = control => {
+  const value: string = control.value.trim();
+  return !value || normalizedWebUrl(value) ? null : { webUrl: true };
 };
 
 const cents: ValidatorFn = control => {
@@ -28,11 +37,42 @@ const cents: ValidatorFn = control => {
   return /^\d+(?:\.\d{1,2})?$/.test(String(value)) ? null : { cents: true };
 };
 
+const validReleaseDate: ValidatorFn = control => {
+  const value: string = control.value;
+  if (!value) return null;
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(value) || value.startsWith('0000')) return { date: true };
+  const date = new Date(`${value}T00:00:00Z`);
+  return Number.isFinite(date.getTime()) && date.toISOString().startsWith(value)
+    ? null : { date: true };
+};
+
+const validCategories: ValidatorFn = control => {
+  const ids: string[] = control.value.map((id: string) => id.toLowerCase());
+  return new Set(ids).size === ids.length && ids.every(id => guidPattern.test(id) && id !== emptyGuid)
+    ? null : { categoryIds: true };
+};
+
+const uniqueMedia: ValidatorFn = control => {
+  const items: GameMediaInput[] = control.value;
+  const seen = new Set<string>();
+  const duplicates = new Set<number>();
+  items.forEach((item, index) => {
+    const url = normalizedWebUrl(item.mediaUrl.trim());
+    if (!url) return;
+    const key = `${item.type}:${url}`;
+    if (seen.has(key)) duplicates.add(index);
+    seen.add(key);
+  });
+  return duplicates.size ? { duplicateMedia: duplicates } : null;
+};
+
 function mediaForm(fb: FormBuilder, item?: GameMediaInput) {
   return fb.group({
-    mediaUrl: fb.nonNullable.control(item?.mediaUrl ?? '', [Validators.required, Validators.maxLength(500), webUrl]),
-    type: fb.nonNullable.control(item?.type ?? MediaType.Image),
-    displayOrder: fb.control(item?.displayOrder ?? 0, [Validators.required, Validators.min(0), Validators.max(2_147_483_647)]),
+    mediaUrl: fb.nonNullable.control(item?.mediaUrl ?? '', [requiredText, Validators.maxLength(500), webUrl]),
+    type: fb.nonNullable.control(item?.type ?? MediaType.Image,
+      control => control.value === MediaType.Image || control.value === MediaType.Video ? null : { mediaType: true }),
+    displayOrder: fb.control(item?.displayOrder ?? 0,
+      [Validators.required, Validators.min(0), Validators.max(2_147_483_647), Validators.pattern(/^\d+$/)]),
   });
 }
 
@@ -66,9 +106,9 @@ export class GameForm {
   protected readonly statusLabels = gameStatusLabels;
 
   protected readonly form = this.fb.nonNullable.group({
-    title: ['', [Validators.required, Validators.maxLength(200)]],
+    title: ['', [requiredText, Validators.maxLength(200)]],
     slug: ['', [Validators.required, Validators.maxLength(200), Validators.pattern(/^[a-z0-9]+(?:-[a-z0-9]+)*$/)]],
-    description: ['', Validators.required],
+    description: ['', requiredText],
     price: this.fb.control<number | null>(null, [Validators.required, Validators.min(0), cents]),
     currency: ['VND', [Validators.required, Validators.pattern(/^[A-Za-z]{3}$/)]],
     discountPercent: this.fb.control<number | null>(0, [Validators.required, Validators.min(0), Validators.max(100), Validators.pattern(/^\d+$/)]),
@@ -77,11 +117,11 @@ export class GameForm {
     trailerUrl: ['', [Validators.maxLength(500), webUrl]],
     publisher: ['', Validators.maxLength(100)],
     developer: ['', Validators.maxLength(100)],
-    releaseDate: '',
+    releaseDate: ['', validReleaseDate],
     minimumRequirements: '',
     recommendedRequirements: '',
-    categoryIds: this.fb.nonNullable.control<string[]>([], Validators.maxLength(100)),
-    media: this.fb.array<ReturnType<typeof mediaForm>>([], Validators.maxLength(100)),
+    categoryIds: this.fb.nonNullable.control<string[]>([], [Validators.maxLength(100), validCategories]),
+    media: this.fb.array<ReturnType<typeof mediaForm>>([], [Validators.maxLength(100), uniqueMedia]),
   });
   protected readonly media = this.form.controls.media;
 
@@ -120,11 +160,40 @@ export class GameForm {
   protected get priceError(): string {
     const price = this.form.controls.price;
     if (price.hasError('pricePrecision')) return 'This price is too large to preserve cent precision in the browser.';
-    return price.touched && price.invalid ? 'Enter a nonnegative price with up to two decimal places.' : '';
+    if (price.hasError('required')) return 'Price is required. Enter 0 for a free game.';
+    return this.fieldError(price, 'Price', 'Enter a nonnegative price with up to two decimal places.');
+  }
+
+  protected get categoryError(): string {
+    return this.fieldError(this.form.controls.categoryIds, 'Categories',
+      'Select distinct, valid categories.', 'Select up to 100 categories.');
+  }
+
+  protected get mediaError(): string {
+    const server = this.media.getError('server');
+    if (typeof server === 'string') return server;
+    return this.media.hasError('maxlength') ? 'Add up to 100 media items.' : '';
+  }
+
+  protected fieldError(control: AbstractControl, label: string, invalid = '', tooLong = ''): string {
+    const errors = control.errors;
+    if (!errors) return '';
+    if (typeof errors['server'] === 'string') return errors['server'];
+    if (errors['required']) return `${label} is required.`;
+    if (errors['maxlength']) return tooLong || `${label} must be at most ${errors['maxlength'].requiredLength} characters.`;
+    if (errors['webUrl']) return 'Enter an absolute HTTP or HTTPS URL without credentials.';
+    return invalid;
+  }
+
+  protected mediaUrlError(item: ReturnType<typeof mediaForm>, index: number): string {
+    const errors: Set<number> | null = this.media.getError('duplicateMedia');
+    return this.fieldError(item.controls.mediaUrl, 'Media URL') ||
+      (errors?.has(index) ? 'This URL is already listed for this media type.' : '');
   }
 
   protected toggleCategory(id: string, checked: boolean): void {
     const control = this.form.controls.categoryIds;
+    if (control.value.includes(id) === checked) return;
     control.setValue(checked ? [...control.value, id] : control.value.filter(item => item !== id));
     control.markAsDirty();
   }
@@ -141,22 +210,13 @@ export class GameForm {
   }
 
   protected save(): void {
-    if (this.form.invalid || this.saving()) return;
+    if (this.form.invalid || this.saving() || this.confirmation() !== null) return;
     this.error.set('');
     this.notice.set('');
     const value = this.form.getRawValue();
     const media = value.media.map(item => ({
       ...item, mediaUrl: item.mediaUrl.trim(), displayOrder: item.displayOrder!,
     }));
-
-    if (!value.title.trim() || !value.description.trim() || media.some(item => !item.mediaUrl || !Number.isInteger(item.displayOrder))) {
-      this.error.set('Enter a title, a description and valid media details.');
-      return;
-    }
-    if (new Set(media.map(item => `${item.type}:${new URL(item.mediaUrl).href}`)).size !== media.length) {
-      this.error.set('Media URL and type pairs must be unique.');
-      return;
-    }
 
     const date = this.game()?.releaseDate;
     const input: GameInput = {
@@ -185,9 +245,49 @@ export class GameForm {
         }
       },
       error: error => {
-        if (this.gameId() === id) this.error.set(catalogError(error));
+        if (this.gameId() === id) this.showSaveError(error);
       },
     });
+  }
+
+  private showSaveError(error: unknown): void {
+    if (error instanceof HttpErrorResponse && (error.status === 400 || error.status === 409)) {
+      const body = error.error as { errors?: Record<string, unknown>; detail?: unknown } | null;
+      const unmapped: string[] = [];
+      let mapped = false;
+      for (const [key, messages] of Object.entries(body?.errors ?? {})) {
+        if (!Array.isArray(messages)) continue;
+        const detail = messages.filter(message => typeof message === 'string').join(' ');
+        if (!detail) continue;
+        const path = key.replace(/^(?:\$\.|request\.)/i, '').replace(/\[(\d+)\]/g, '.$1')
+          .split('.').map(part => part.charAt(0).toLowerCase() + part.slice(1));
+        const control = path[0] === 'categoryIds' ? this.form.controls.categoryIds : this.form.get(path);
+        if (control && control !== this.form) {
+          control.setErrors({ ...control.errors, server: detail });
+          mapped = true;
+        } else {
+          unmapped.push(detail);
+        }
+      }
+
+      if (error.status === 409 && body?.detail === 'This game slug is already in use.') {
+        this.form.controls.slug.setErrors({ server: body.detail });
+        mapped = true;
+      }
+      if (error.status === 400 && body?.detail === 'One or more selected categories do not exist.') {
+        this.form.controls.categoryIds.setErrors({ server: body.detail });
+        mapped = true;
+      }
+      if (mapped) {
+        this.error.set(unmapped.join(' ') || 'Check the highlighted fields and try again.');
+        return;
+      }
+    }
+    if (error instanceof HttpErrorResponse && error.status >= 500) {
+      this.error.set('The server could not save the game. Try again.');
+      return;
+    }
+    this.error.set(catalogError(error));
   }
 
   protected requestStatusChange(): void {

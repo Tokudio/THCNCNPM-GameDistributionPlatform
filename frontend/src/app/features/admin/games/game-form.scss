@@ -14,5 +14,7 @@
 .media-row { display: grid; grid-template-columns: minmax(0, 1fr) 8rem 6rem auto; gap: .75rem; align-items: end; margin-top: 1.1rem; }
 .media-row legend { margin-bottom: .35rem; color: var(--muted); }
 .add-media { margin-top: .85rem; }
+.field-error { color: var(--danger); overflow-wrap: anywhere; }
+input[aria-invalid='true'], select[aria-invalid='true'], textarea[aria-invalid='true'] { border-color: var(--danger); }
 @media (max-width: 43rem) { .media-row { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); } .media-row .field:first-of-type { grid-column: 1 / -1; } }
 @media (max-width: 31rem) { .form-grid { grid-template-columns: 1fr; } }
