@@ -8,7 +8,7 @@ export function loginUrl(router: Router, returnUrl: string): UrlTree {
 }
 
 export function postLoginUrl(router: Router, returnUrl: string | null): UrlTree {
-  return returnUrl && /^\/(?:profile|access-denied|admin(?:\/categories|\/games(?:\/new|\/[a-fA-F0-9-]+\/edit)?)?)(?:[?#]|$)/.test(returnUrl)
+  return returnUrl && /^\/(?:profile|access-denied|store(?:\/games(?:\/[a-fA-F0-9-]+)?)?|admin(?:\/categories|\/games(?:\/new|\/[a-fA-F0-9-]+\/edit)?)?)(?:[?#]|$)/.test(returnUrl)
     ? router.parseUrl(returnUrl)
     : router.createUrlTree(['/profile']);
 }

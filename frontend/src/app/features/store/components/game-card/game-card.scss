@@ -1,0 +1,24 @@
+:host { display: block; min-width: 0; height: 100%; }
+.card { display: flex; flex-direction: column; height: 100%; padding: .65rem; border: 1px solid var(--border); border-radius: 1.125rem; background: var(--surface); color: var(--text); text-decoration: none; }
+.card:hover { border-color: var(--accent); background: var(--raised); }
+.cover { aspect-ratio: var(--store-cover-ratio, 1.6); border: 1px solid var(--border); border-radius: 1rem; }
+.card-copy { display: flex; flex: 1; flex-direction: column; padding: .45rem .32rem .1rem; }
+h3 { margin: 0; font-size: .96rem; text-transform: uppercase; overflow-wrap: anywhere; }
+.genres { margin: .32rem 0 0; color: var(--muted); font-size: .78rem; overflow-wrap: anywhere; }
+.card-bottom { display: flex; align-items: flex-end; gap: .55rem; justify-content: space-between; margin-top: auto; padding-top: .6rem; }
+.prices { min-width: 0; overflow-wrap: anywhere; }
+.prices strong { display: block; font-size: 1rem; }
+.prices del { color: var(--muted); font-size: .78rem; }
+.discount { margin-inline-start: .35rem; color: var(--store-cyan); font-size: .78rem; font-weight: 700; }
+.free { color: var(--success); text-transform: uppercase; }
+.details { display: grid; flex: 0 0 auto; place-items: center; width: 1.9rem; height: 1.9rem; border-radius: .48rem; color: var(--store-cyan); background: var(--raised); font-weight: 700; }
+.compact { padding: 0; border-color: transparent; background: transparent; }
+.compact .cover { aspect-ratio: 2.22; }
+.compact .card-copy { padding: .8rem .72rem .15rem; }
+@media (max-width: 36rem) {
+  .card { border-radius: 1rem; padding: .55rem; }
+  .cover { aspect-ratio: 1; }
+  h3 { font-size: .82rem; }
+  .card-copy { padding-inline: .12rem; }
+  .details { display: none; }
+}

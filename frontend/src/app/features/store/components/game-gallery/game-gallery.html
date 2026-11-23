@@ -1,0 +1,16 @@
+<section class="gallery" aria-label="Game media gallery">
+  <div class="main-art">
+    <app-game-artwork [source]="active()" [alternate]="bannerFallback()" [alt]="game().title + ' artwork'" [eager]="true" />
+    <strong class="art-title" aria-hidden="true">{{ game().title }}</strong>
+  </div>
+  @if (images().length > 1) {
+    <p class="media-heading">Screenshots &amp; media</p>
+    <div class="thumbnails" role="group" aria-label="Select an image">
+      @for (image of images(); track image) {
+        <button type="button" [attr.aria-pressed]="active() === image" [attr.aria-label]="'Show image ' + ($index + 1)" (click)="select(image)">
+          <app-game-artwork [source]="image" [alt]="game().title + ' image ' + ($index + 1)" />
+        </button>
+      }
+    </div>
+  }
+</section>

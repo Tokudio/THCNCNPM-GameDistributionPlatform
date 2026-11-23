@@ -1,0 +1,14 @@
+<a class="card" [class.compact]="compact()" [routerLink]="['/store/games', game().id]" [attr.aria-label]="'View details for ' + game().title">
+  <app-game-artwork class="cover" [source]="game().coverImageUrl" [fallback]="placeholder()" [alt]="'Cover art for ' + game().title" />
+  <div class="card-copy">
+    <h3>{{ game().title }}</h3>
+    @if (genres()) { <p class="genres">{{ genres() }}</p> }
+    <div class="card-bottom">
+      <div class="prices">
+        @if (price().original; as original) { <del>{{ original }}</del> <span class="discount">−{{ price().discount }}%</span> }
+        <strong [class.free]="price().free">{{ price().final }}</strong>
+      </div>
+      @if (!compact()) { <span class="details" aria-hidden="true">↗</span> }
+    </div>
+  </div>
+</a>

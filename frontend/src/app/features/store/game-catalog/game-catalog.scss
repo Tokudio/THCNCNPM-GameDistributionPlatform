@@ -1,0 +1,64 @@
+@use '../store' as store;
+@include store.states;
+
+:host { display: block; }
+h1, h2 { margin: 0; line-height: 1.12; }
+h1 { font-size: clamp(1.9rem, 3vw, 2.65rem); }
+.section-link { color: var(--store-cyan); }
+.page-heading { margin-bottom: clamp(1rem, 3vw, 2.5rem); }
+.page-heading p, .muted, .count, .empty p { color: var(--muted); }
+.page-heading p { margin: .45rem 0 0; }
+.compact-title { display: none; }
+.catalog-layout { display: grid; grid-template-columns: minmax(14rem, 17rem) minmax(0, 1fr); gap: 1.65rem; }
+.filter-panel, .toolbar, .empty, .filter-dialog { background: var(--surface); border: 1px solid var(--border); border-radius: 1rem; }
+.filter-panel { padding: 1.2rem; }
+.filter-heading { display: flex; align-items: center; justify-content: space-between; gap: .5rem; }
+.filter-heading h2 { font-size: 1.2rem; }
+.reset, .catalog-search button { background: none; border: 0; cursor: pointer; }
+.reset { color: var(--store-cyan); padding: .35rem; }
+fieldset { margin: 1.1rem 0; min-width: 0; padding: .65rem 0 .2rem; border: 0; border-bottom: 1px solid var(--border); }
+legend { color: var(--muted); font-size: .78rem; font-weight: 700; text-transform: uppercase; }
+fieldset label { display: flex; gap: .6rem; align-items: center; margin-block: .45rem; padding-block: .2rem; color: var(--muted); font-size: .9rem; }
+input[type='radio'] { accent-color: var(--accent); }
+.price-range { border: 0; }
+.price-fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .6rem; }
+.price-fields label { display: grid; gap: .35rem; font-weight: 650; }
+.price-fields input { width: 100%; padding: .65rem .6rem; min-height: 2.75rem; border: 1px solid var(--border); border-radius: .55rem; background: var(--input); color: var(--text); }
+.error { color: var(--danger); }
+.toolbar { display: grid; grid-template-columns: minmax(0, 1fr) minmax(11rem, 14rem); align-items: center; padding: .6rem 1rem; gap: 1rem; }
+.catalog-search, .sort { display: flex; align-items: center; gap: .4rem; min-width: 0; }
+.catalog-search button { color: var(--muted); padding: .55rem; }
+.catalog-search input, .sort select { width: 100%; min-width: 0; background: transparent; border: 0; color: var(--text); font: inherit; }
+.catalog-search input { padding: .65rem .2rem; }
+.sort { padding: .5rem .8rem; background: var(--raised); border-radius: .6rem; font-size: .9rem; }
+.results { margin-top: 1.35rem; }
+.count { margin: 0 0 1rem; }
+.game-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1.15rem 1.55rem; }
+.pagination { display: flex; justify-content: center; flex-wrap: wrap; gap: .55rem; margin-top: 1.85rem; }
+.pagination button[aria-current] { background: var(--accent); color: #140d2d; }
+.pagination button:disabled { opacity: .5; cursor: not-allowed; }
+.empty { min-height: min(36rem, 65vh); display: grid; align-content: center; justify-items: center; gap: 1rem; padding: 1.5rem; text-align: center; }
+.empty-disc { display: grid; place-items: center; }
+.empty-disc img, .empty-disc b { grid-area: 1 / 1; }
+.empty-disc b { font-size: 4rem; color: var(--accent); line-height: 1; }
+.empty p { margin: 0; }
+.empty .button { width: min(100%, 11.5rem); }
+.filter-dialog { color: var(--text); width: min(25rem, calc(100% - 1rem)); margin: auto 0 auto auto; max-height: 100dvh; padding: 3rem 1.25rem 1.25rem; }
+.filter-dialog::backdrop { background: #040815aa; }
+.close { position: absolute; top: .55rem; right: .65rem; }
+.category-pills { display: flex; flex-wrap: wrap; gap: .55rem; margin-top: 1rem; }
+.category-pills button { background: var(--raised); border: 0; color: var(--text); border-radius: 2rem; padding: .5rem 1rem; cursor: pointer; }
+.category-pills button[aria-pressed='true'] { background: var(--accent); color: #140d2d; }
+@media (max-width: 56rem) {
+  .catalog-layout { display: block; }
+  .toolbar { grid-template-columns: minmax(0, 1fr) auto minmax(8rem, 11rem); gap: .6rem; }
+  .game-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; }
+}
+@media (max-width: 36rem) {
+  .page-heading p, .wide-title, .category-pills { display: none; }
+  .compact-title { display: inline; }
+  .toolbar { padding: 0; grid-template-columns: repeat(2, minmax(0, 1fr)); border: 0; background: transparent; }
+  .catalog-search { grid-column: 1 / -1; border: 1px solid var(--border); border-radius: .75rem; background: var(--surface); }
+  .sort, .show-filters { background: var(--raised); min-height: 2.75rem; }
+  .game-grid { gap: .65rem; }
+}

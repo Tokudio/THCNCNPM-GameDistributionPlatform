@@ -1,0 +1,108 @@
+@let categories = categoryState();
+<ng-template #filterFields>
+  <form class="filter-fields" [formGroup]="form" (ngSubmit)="apply(filterDialog)" novalidate>
+    <div class="filter-heading">
+      <h2 id="filters-title">Filters</h2>
+      <button type="button" class="reset" (click)="reset(filterDialog)">Reset</button>
+    </div>
+    <fieldset>
+      <legend>Categories</legend>
+      @if (categories.loading) { <p class="muted" role="status">Loading categories…</p> }
+      @if (categories.error) {
+        <p class="muted" role="alert">{{ categories.error }}</p>
+        <button type="button" class="button button-secondary" (click)="retryCategories()">Retry categories</button>
+      }
+      <label><input type="radio" formControlName="category" value="" /> All categories</label>
+      @for (category of categories.items; track category.id) {
+        <label><input type="radio" formControlName="category" [value]="category.id" /> {{ category.name }}</label>
+      }
+    </fieldset>
+    <fieldset class="price-range">
+      <legend>Price range</legend>
+      <div class="price-fields">
+        <label for="min-price">Min price <input id="min-price" inputmode="decimal" placeholder="0" formControlName="minPrice" [attr.aria-describedby]="priceError ? 'range-error' : null" /></label>
+        <label for="max-price">Max price <input id="max-price" inputmode="decimal" placeholder="Any" formControlName="maxPrice" [attr.aria-describedby]="priceError ? 'range-error' : null" /></label>
+      </div>
+      @if (priceError) { <p class="error" id="range-error" role="alert">{{ priceError }}</p> }
+    </fieldset>
+    <button type="submit" class="button button-primary apply">Apply filters</button>
+  </form>
+</ng-template>
+
+<header class="page-heading">
+  <h1><span class="wide-title">Explore all games</span><span class="compact-title">Browse games</span></h1>
+  <p>Every world begins with discovery. Find your next obsession.</p>
+</header>
+
+<div class="catalog-layout">
+  @if (!compact()) {
+    <aside class="filter-panel" aria-labelledby="filters-title"><ng-container [ngTemplateOutlet]="filterFields" /></aside>
+  }
+  <div class="catalog-content">
+    <form class="toolbar" [formGroup]="form" (ngSubmit)="search()" novalidate>
+      <div class="catalog-search" role="search">
+        <button type="submit" aria-label="Search catalog">⌕</button>
+        <input type="search" aria-label="Search catalog by title" placeholder="Search games by title…" formControlName="search" maxlength="200" />
+      </div>
+      @if (compact()) {
+        <button type="button" class="button button-secondary show-filters" (click)="filterDialog.showModal()">Filters</button>
+      }
+      <label class="sort"><span>Sort:</span>
+        <select aria-label="Sort games" formControlName="sort" (change)="changeSort()">
+          <option [ngValue]="sort.Newest">Newest</option>
+          <option [ngValue]="sort.Title">Title</option>
+          <option [ngValue]="sort.PriceAsc">Price: Low to high</option>
+          <option [ngValue]="sort.PriceDesc">Price: High to low</option>
+        </select>
+      </label>
+    </form>
+
+    @if (compact() && categories.items.length) {
+      <nav class="category-pills" aria-label="Quick category filters">
+        <button type="button" [attr.aria-pressed]="!applied().category" (click)="selectCategory('')">All categories</button>
+        @for (category of categories.items.slice(0, 4); track category.id) {
+          <button type="button" [attr.aria-pressed]="applied().category === category.id" (click)="selectCategory(category.id)">{{ category.name }}</button>
+        }
+      </nav>
+    }
+
+    @let state = result();
+    <section class="results" aria-label="Catalog results" [attr.aria-busy]="state.loading">
+      @if (state.loading) {
+        <p class="state" role="status">Loading games…</p>
+      } @else if ('error' in state) {
+        <div class="state"><p role="alert">{{ state.error }}</p><button type="button" class="button button-secondary" (click)="retry()">Retry</button></div>
+      } @else if (!state.page.items.length) {
+        <div class="empty">
+          <span class="empty-disc" aria-hidden="true"><img src="store/empty-disc.svg" alt="" width="168" height="168" /><b>⌕</b></span>
+          <h2>No games found</h2>
+          <p>Try a different keyword or clear some filters.</p>
+          <button type="button" class="button button-primary" (click)="reset()">Clear filters</button>
+          <a class="section-link" routerLink="/store">Back to Store</a>
+        </div>
+      } @else {
+        <p class="count" role="status">{{ state.page.totalCount }} {{ state.page.totalCount === 1 ? 'game' : 'games' }} found</p>
+        <div class="game-grid">
+          @for (game of state.page.items; track game.id) { <app-game-card [game]="game" [index]="$index" /> }
+        </div>
+        @if (state.page.totalPages > 1) {
+          <nav class="pagination" aria-label="Catalog pagination">
+            <button class="button button-secondary" type="button" aria-label="Previous page" [disabled]="state.page.pageNumber <= 1" (click)="goTo(state.page.pageNumber - 1)">←</button>
+            @for (page of pageNumbers(state.page); track page) {
+              <button class="button button-secondary" type="button" [attr.aria-label]="'Page ' + page"
+                [attr.aria-current]="page === state.page.pageNumber ? 'page' : null" (click)="goTo(page)">{{ page }}</button>
+            }
+            <button class="button button-secondary" type="button" aria-label="Next page" [disabled]="state.page.pageNumber >= state.page.totalPages" (click)="goTo(state.page.pageNumber + 1)">→</button>
+          </nav>
+        }
+      }
+    </section>
+  </div>
+</div>
+
+<dialog #filterDialog aria-labelledby="filters-title" class="filter-dialog">
+  @if (compact()) {
+    <button type="button" class="button button-secondary close" (click)="filterDialog.close()" aria-label="Close filters">✕</button>
+    <ng-container [ngTemplateOutlet]="filterFields" />
+  }
+</dialog>

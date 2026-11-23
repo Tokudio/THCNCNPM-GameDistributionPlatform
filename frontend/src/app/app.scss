@@ -68,9 +68,45 @@
 
 .skip-link:focus { transform: none; }
 
+.legacy-store-link { margin-right: auto; }
+
+.store-shell {
+  --background: #090f1e;
+  --surface: #121c30;
+  --raised: #1d2940;
+  --input: #0e1626;
+  --border: #2a394f;
+  --text: #f2f6ff;
+  --muted: #94a5c3;
+  --accent: #8b70ff;
+  --accent-hover: #aa96ff;
+  --accent-text: #c2b3ff;
+  --store-cyan: #26cede;
+  --success: #34d6a7;
+  --danger: #fa7586;
+  background: #0c1220;
+  min-height: 100svh;
+  color: var(--text);
+}
+
+.store-page {
+  width: min(100%, 90rem);
+  padding: clamp(1.25rem, 2.5vw, 2.25rem) clamp(1.125rem, 5.2vw, 4.75rem) 4rem;
+}
+
+@media (max-width: 63rem) {
+  .store-page { padding-inline: clamp(1.125rem, 3.5vw, 1.75rem); }
+}
+
 @media (max-width: 35rem) {
   .header-inner { min-height: 4.25rem; gap: .75rem; }
   .nav-prompt { display: none; }
   .account-nav { gap: .45rem; }
   .brand { gap: .45rem; }
+  .legacy-store-link { padding-inline: .25rem; }
+}
+
+@media (max-width: 25rem) {
+  .header-inner { flex-wrap: wrap; }
+  .account-nav { margin-left: auto; }
 }

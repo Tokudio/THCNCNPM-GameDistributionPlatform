@@ -1,0 +1,15 @@
+:host { display: block; min-width: 0; }
+.main-art { position: relative; aspect-ratio: 1.96; overflow: hidden; border: 1px solid var(--border); border-radius: 1.08rem; }
+.main-art app-game-artwork { height: 100%; }
+.main-art::after { content: ''; position: absolute; inset: 40% 0 0; pointer-events: none; background: linear-gradient(transparent, #0a0e1e9c); }
+.art-title { position: absolute; z-index: 1; inset: auto 4.6% 20%; color: var(--text); font-size: clamp(1.35rem, 3.4vw, 3rem); line-height: 1; text-transform: uppercase; overflow-wrap: anywhere; }
+.media-heading { margin: 2rem 0 .5rem; color: var(--muted); font-weight: 700; font-size: .86rem; text-transform: uppercase; }
+.thumbnails { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: .8rem; }
+.thumbnails button { min-width: 0; padding: 0; border: 1px solid var(--border); border-radius: .85rem; overflow: hidden; aspect-ratio: 1.72; background: var(--surface); cursor: pointer; }
+.thumbnails button[aria-pressed='true'], .thumbnails button:hover { border-color: var(--accent); }
+.thumbnails app-game-artwork { height: 100%; }
+@media (max-width: 38rem) {
+  .main-art { aspect-ratio: 1.55; }
+  .media-heading { margin-top: 1.15rem; }
+  .thumbnails { gap: .45rem; }
+}

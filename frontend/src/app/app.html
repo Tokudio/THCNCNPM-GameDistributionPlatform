@@ -1,12 +1,17 @@
 <button type="button" class="button button-secondary skip-link" (click)="content.focus()">
   Skip to main content
 </button>
+<div [class.store-shell]="storePage()">
+@if (storePage()) {
+  <app-store-header (signOut)="auth.logout()" />
+} @else {
 <header class="site-header">
   <div class="header-inner">
     <a class="brand" [routerLink]="auth.isAuthenticated() ? '/profile' : '/login'">
       <span class="brand-mark" aria-hidden="true"></span>
       GameVault
     </a>
+    <a class="button button-quiet legacy-store-link" routerLink="/store">Store</a>
     <nav class="account-nav" aria-label="Account">
       @if (auth.isAuthenticated()) {
         <a class="button button-quiet" routerLink="/profile">Profile</a>
@@ -21,6 +26,8 @@
     </nav>
   </div>
 </header>
-<main class="page" id="main-content" #content tabindex="-1">
+}
+<main class="page" [class.store-page]="storePage()" id="main-content" #content tabindex="-1">
   <router-outlet />
 </main>
+</div>

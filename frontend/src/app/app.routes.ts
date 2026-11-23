@@ -2,7 +2,25 @@ import { Routes } from '@angular/router';
 import { authGuard, guestGuard, roleGuard } from './core/auth/auth.guards';
 
 export const routes: Routes = [
-  { path: '', pathMatch: 'full', redirectTo: 'login' },
+  { path: '', pathMatch: 'full', redirectTo: 'store' },
+  {
+    path: 'store',
+    title: 'Game Distribution',
+    data: { store: true },
+    loadComponent: () => import('./features/store/store-home/store-home').then(m => m.StoreHome),
+  },
+  {
+    path: 'store/games',
+    title: 'Explore all games | Game Distribution',
+    data: { store: true },
+    loadComponent: () => import('./features/store/game-catalog/game-catalog').then(m => m.GameCatalog),
+  },
+  {
+    path: 'store/games/:id',
+    title: 'Game details | Game Distribution',
+    data: { store: true },
+    loadComponent: () => import('./features/store/game-detail/game-detail').then(m => m.GameDetail),
+  },
   {
     path: '',
     loadComponent: () => import('./features/auth/auth-layout').then(m => m.AuthLayout),

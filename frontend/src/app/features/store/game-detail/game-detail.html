@@ -1,0 +1,77 @@
+@let detail = state();
+@if (detail.kind === 'loading') {
+  <p class="state" role="status">Loading game details…</p>
+} @else if (detail.kind === 'missing') {
+  <section class="state" aria-labelledby="missing-title"><h1 id="missing-title">Game not found</h1>
+    <p>This game is unavailable in the public store.</p>
+    <a class="button button-primary" routerLink="/store/games">Browse games</a>
+  </section>
+} @else if (detail.kind === 'error') {
+  <div class="state"><p role="alert">{{ detail.message }}</p>
+    <button type="button" class="button button-secondary" (click)="retry()">Retry</button>
+  </div>
+} @else if (detail.kind === 'ready') {
+  @let game = detail.game;
+  @let pricing = price(game);
+  <header class="detail-heading">
+    <nav aria-label="Breadcrumb" class="breadcrumb">
+      <a routerLink="/store/games">Store</a>
+      @if (game.categories[0]; as category) {
+        <span aria-hidden="true">/</span><a routerLink="/store/games" [queryParams]="{ category: category.id }">{{ category.name }}</a>
+      }
+      <span aria-hidden="true">/</span><span aria-current="page">{{ game.title }}</span>
+    </nav>
+    <h1>{{ game.title }}</h1>
+    @if (game.description) { <p>{{ excerpt(game.description) }}</p> }
+  </header>
+  <div class="detail-layout">
+    <app-game-gallery [game]="game" />
+    <aside class="price-card" aria-label="Game price and information">
+      <app-game-artwork class="cover" [source]="game.coverImageUrl" [alternate]="game.bannerImageUrl" [alt]="'Cover art for ' + game.title" />
+      @if (game.categories.length) {
+        <ul class="pills" aria-label="Game categories">
+          @for (category of game.categories; track category.id) {
+            <li><a routerLink="/store/games" [queryParams]="{ category: category.id }">{{ category.name }}</a></li>
+          }
+        </ul>
+      }
+      <div class="price">
+        @if (pricing.original; as original) { <del>{{ original }}</del> <span class="discount">−{{ pricing.discount }}%</span> }
+        <strong [class.free]="pricing.free">{{ pricing.final }}</strong>
+      </div>
+      <button type="button" class="button button-primary buy" disabled>Buy game · Coming in Phase 7</button>
+      @if (game.developer || game.publisher || game.releaseDate) {
+        <dl>
+          @if (game.developer) { <div><dt>Developer</dt><dd>{{ game.developer }}</dd></div> }
+          @if (game.publisher) { <div><dt>Publisher</dt><dd>{{ game.publisher }}</dd></div> }
+          @if (game.releaseDate) { <div><dt>Release date</dt><dd>{{ game.releaseDate.slice(0, 10) | date: 'd MMM y' }}</dd></div> }
+        </dl>
+      }
+    </aside>
+  </div>
+  @let videos = videoLinks(game);
+  @if (game.description || videos.length) {
+    <section class="detail-section" aria-labelledby="about-title">
+      <h2 id="about-title">About this game</h2>
+      @if (game.description) { <p class="description">{{ game.description }}</p> }
+      @if (videos.length) { <ul class="video-links">
+        @for (video of videos; track video.url) {
+          <li><a class="button button-secondary" [href]="video.url" target="_blank" rel="noopener noreferrer">{{ video.label }}</a></li>
+        }
+      </ul> }
+    </section>
+  }
+  @if (game.minimumRequirements || game.recommendedRequirements) {
+    <section class="detail-section" aria-labelledby="requirements-title">
+      <h2 id="requirements-title">System requirements</h2>
+      <div class="requirements">
+        @if (game.minimumRequirements) {
+          <div><h3>Minimum</h3><p>{{ game.minimumRequirements }}</p></div>
+        }
+        @if (game.recommendedRequirements) {
+          <div><h3>Recommended</h3><p>{{ game.recommendedRequirements }}</p></div>
+        }
+      </div>
+    </section>
+  }
+}

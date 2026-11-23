@@ -1,0 +1,70 @@
+@let results = games();
+<section class="hero" aria-labelledby="home-title">
+  <div class="hero-copy">
+    <p class="eyebrow">Discover the extraordinary</p>
+    <h1 id="home-title">Your next<br class="desktop-break" /> great adventure</h1>
+    <p class="intro">Curated worlds. Epic stories. Unlimited possibilities.<br /> Explore a digital universe built for the games you love.</p>
+  </div>
+  <div class="hero-media">
+    @if ('data' in results && results.data.hero; as game) {
+      <a class="hero-link" [routerLink]="['/store/games', game.id]" [attr.aria-label]="'View featured game ' + game.title">
+        <app-game-artwork [source]="game.bannerImageUrl" [alternate]="game.coverImageUrl" [alt]="'Artwork for ' + game.title" [eager]="true" />
+        <span class="featured-label">Featured world</span>
+        <strong>{{ game.title }}</strong>
+      </a>
+    } @else {
+      <app-game-artwork alt="Store illustration" [eager]="true" />
+    }
+  </div>
+  <div class="hero-actions">
+    <a class="button button-primary" routerLink="/store/games">Explore all games</a>
+    @if ('data' in results && results.data.featured.length) {
+      <a class="button button-secondary featured-link" routerLink="/store" fragment="featured">View featured</a>
+    }
+  </div>
+</section>
+
+<section class="store-section" id="featured" aria-labelledby="featured-title">
+  <header class="section-heading">
+    <h2 id="featured-title"><span class="desktop-featured-title">Featured picks</span><span class="compact-featured-title">Featured games</span></h2>
+    <a class="section-link" routerLink="/store/games">Browse all games</a>
+  </header>
+  @if (results.loading) {
+    <p class="state" role="status">Loading featured games…</p>
+  } @else if ('error' in results) {
+    <div class="state"><p role="alert">{{ results.error }}</p><button type="button" class="button button-secondary" (click)="reloadGames()">Retry</button></div>
+  } @else if (results.data.featured.length) {
+    <div class="featured-grid">
+      @for (game of results.data.featured; track game.id) { <app-game-card [game]="game" [index]="$index" /> }
+    </div>
+  } @else {
+    <p class="state" role="status">No published games are available yet.</p>
+  }
+</section>
+
+<section class="store-section" id="genres" aria-labelledby="genres-title">
+  <header class="section-heading"><h2 id="genres-title">Explore by genre</h2></header>
+  @let genres = categories();
+  @if (genres.loading) {
+    <p class="state" role="status">Loading categories…</p>
+  } @else if ('error' in genres) {
+    <div class="state"><p role="alert">{{ genres.error }}</p><button type="button" class="button button-secondary" (click)="reloadCategories()">Retry categories</button></div>
+  } @else if (genres.data.length) {
+    <ul class="genre-grid">
+      @for (category of genres.data; track category.id) {
+        <li><a routerLink="/store/games" [queryParams]="{ category: category.id }"><span class="genre-dot" aria-hidden="true"></span>{{ category.name }}<span class="genre-arrow" aria-hidden="true">↗</span></a></li>
+      }
+    </ul>
+  } @else {
+    <p class="state" role="status">No categories are available yet.</p>
+  }
+</section>
+
+@if ('data' in results && results.data.recent.length) {
+  <section class="store-section recent" aria-labelledby="recent-title">
+    <header class="section-heading"><h2 id="recent-title">New and noteworthy</h2></header>
+    <div class="recent-grid">
+      @for (game of results.data.recent; track game.id) { <app-game-card [game]="game" [index]="$index + 2" [compact]="true" /> }
+    </div>
+  </section>
+}

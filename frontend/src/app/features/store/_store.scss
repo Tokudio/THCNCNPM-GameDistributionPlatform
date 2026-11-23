@@ -1,0 +1,15 @@
+@mixin page {
+  :host { display: block; min-width: 0; }
+  h1, h2 { margin: 0; color: var(--text); letter-spacing: -.035em; line-height: 1.12; }
+  h1 { font-size: clamp(1.9rem, 3vw, 2.65rem); }
+  h2 { font-size: clamp(1.35rem, 2.1vw, 1.75rem); }
+  .section-link { color: var(--store-cyan); text-decoration: none; font-size: .9rem; font-weight: 650; }
+  .section-link:hover { text-decoration: underline; }
+  .button-primary { width: auto; color: #140d2d; }
+  .button-primary:disabled { color: var(--text); }
+}
+
+@mixin states {
+  .state { margin: 0; padding: 1.2rem; border-radius: 1rem; border: 1px solid var(--border); background: var(--surface); color: var(--muted); }
+  .state p:first-child { margin-top: 0; }
+}

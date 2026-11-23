@@ -1,0 +1,34 @@
+<header class="store-header" (keydown.escape)="closeMenu(menu)">
+  <div class="header-content">
+    <a class="wordmark" routerLink="/store" aria-label="Game Distribution home" (click)="open.set(false)">
+      <span class="mark" aria-hidden="true"><img src="store/brand-mark.svg" alt="" width="40" height="37" /><b>G</b></span>
+      <span>GAME <small>DISTRIBUTION</small></span>
+    </a>
+    <button #menu type="button" class="button button-secondary menu-button"
+      aria-label="Menu" [attr.aria-expanded]="open()" aria-controls="store-navigation" (click)="open.set(!open())">
+      <span aria-hidden="true">☰</span><span class="menu-label"> Menu</span>
+    </button>
+    <div id="store-navigation" class="navigation" [class.menu-open]="open()">
+      <nav class="store-nav" aria-label="Store">
+        <a routerLink="/store" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }"
+          ariaCurrentWhenActive="page" (click)="open.set(false)">Home</a>
+        <a routerLink="/store/games" routerLinkActive="active" ariaCurrentWhenActive="page" (click)="open.set(false)">Store</a>
+        <a routerLink="/store" fragment="genres" (click)="open.set(false)">Categories</a>
+      </nav>
+      <form class="header-search" (submit)="search($event, headerSearch.value)" role="search" aria-label="Quick game search">
+        <button type="submit" aria-label="Search games">⌕</button>
+        <input #headerSearch type="search" aria-label="Search games by title" placeholder="Search games…" maxlength="200" />
+      </form>
+      <nav class="account-links" aria-label="Account">
+        @if (auth.currentUser(); as user) {
+          @if (user.roles.includes('Admin')) { <a class="button button-secondary" routerLink="/admin" (click)="open.set(false)">Admin</a> }
+          <a class="button button-secondary" routerLink="/profile" (click)="open.set(false)"><span class="avatar" aria-hidden="true">{{ user.displayName.charAt(0).toUpperCase() }}</span> My profile</a>
+          <button type="button" class="button button-quiet" (click)="open.set(false); signOut.emit()">Sign out</button>
+        } @else {
+          <a class="button button-secondary" routerLink="/login" [queryParams]="{ returnUrl: router.url }" (click)="open.set(false)">Log in</a>
+          <a class="button button-primary" routerLink="/register" [queryParams]="{ returnUrl: router.url }" (click)="open.set(false)">Sign up</a>
+        }
+      </nav>
+    </div>
+  </div>
+</header>

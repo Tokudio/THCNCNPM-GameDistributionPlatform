@@ -1,0 +1,4 @@
+@if (image(); as asset) {
+  <img [src]="asset.url" [alt]="asset.fallback ? '' : alt()" [loading]="eager() ? 'eager' : 'lazy'"
+    decoding="async" referrerpolicy="no-referrer" (error)="failed(asset.url)" />
+}
