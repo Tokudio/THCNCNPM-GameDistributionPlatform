@@ -3,7 +3,7 @@
 </button>
 <div [class.store-shell]="storePage()">
 @if (storePage()) {
-  <app-store-header (signOut)="auth.logout()" />
+  <app-store-header (signOut)="storeLogout()" />
 } @else {
 <header class="site-header">
   <div class="header-inner">

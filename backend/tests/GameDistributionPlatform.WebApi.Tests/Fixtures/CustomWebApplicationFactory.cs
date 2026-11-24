@@ -24,10 +24,12 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
         Encoding.UTF8.GetBytes("TestSigningKeyForIntegrationTestsOnly1234567890!"));
 
     private SqliteConnection? _sqliteConnection;
+    protected virtual string TestEnvironment => "Testing";
+    protected virtual bool IndependentConnections => false;
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
-        builder.UseEnvironment("Testing");
+        builder.UseEnvironment(TestEnvironment);
 
         // Cung cấp cấu hình Test qua UseSetting để nạp trước khi Program.cs validate
         builder.UseSetting("Jwt:Issuer", TestJwtIssuer);
@@ -56,7 +58,10 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
             }
 
             // 2. Mở kết nối SQLite In-Memory và giữ mở trong suốt vòng đời Test Host
-            _sqliteConnection = new SqliteConnection("DataSource=:memory:");
+            var connectionString = IndependentConnections
+                ? $"Data Source=checkout-{Guid.NewGuid():N};Mode=Memory;Cache=Shared;Pooling=False"
+                : "DataSource=:memory:";
+            _sqliteConnection = new SqliteConnection(connectionString);
             _sqliteConnection.Open();
 
             // 3. Khởi tạo schema SQLite bằng EnsureCreated() trước khi DatabaseSeeder chạy
@@ -78,7 +83,8 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
             // 4. Đăng ký AppDbContext sử dụng SQLite Connection đã mở
             services.AddDbContext<AppDbContext>(options =>
             {
-                options.UseSqlite(_sqliteConnection);
+                if (IndependentConnections) options.UseSqlite(connectionString);
+                else options.UseSqlite(_sqliteConnection);
             });
         });
     }

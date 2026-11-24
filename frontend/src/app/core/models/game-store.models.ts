@@ -42,6 +42,7 @@ export interface GameDetails<Price = number> extends GameSummary<Price> {
   recommendedRequirements: string | null;
   categories: Category[];
   media: GameMedia[];
+  mockPaymentAvailable?: boolean;
 }
 
 export interface Page<T> {

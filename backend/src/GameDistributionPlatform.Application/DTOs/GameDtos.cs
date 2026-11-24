@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
 using GameDistributionPlatform.Domain.Enums;
 
 namespace GameDistributionPlatform.Application.DTOs;
@@ -14,7 +15,11 @@ public sealed record GameResponse(
     int DiscountPercent, GameStatus Status, string? CoverImageUrl, string? BannerImageUrl,
     string? TrailerUrl, string? Publisher, string? Developer, DateTime? ReleaseDate,
     string? MinimumRequirements, string? RecommendedRequirements, DateTime CreatedAt, DateTime? UpdatedAt,
-    IReadOnlyList<CategoryResponse> Categories, IReadOnlyList<GameMediaResponse> Media);
+    IReadOnlyList<CategoryResponse> Categories, IReadOnlyList<GameMediaResponse> Media)
+{
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public bool? MockPaymentAvailable { get; init; }
+}
 
 public sealed record PageResponse<T>(
     int PageNumber, int PageSize, int TotalCount, int TotalPages, IReadOnlyList<T> Items);

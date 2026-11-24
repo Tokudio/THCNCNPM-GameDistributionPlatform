@@ -69,6 +69,12 @@ builder.Services.AddScoped<IJwtService, JwtService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<ICategoryService, CategoryService>();
 builder.Services.AddScoped<IGameService, GameService>();
+builder.Services.AddScoped<IOrderService, OrderService>();
+builder.Services.AddSingleton(services =>
+{
+    var environment = services.GetRequiredService<IHostEnvironment>();
+    return new CheckoutAvailability(environment.IsDevelopment() || environment.IsEnvironment("Testing"));
+});
 
 // Configure JWT Authentication
 var jwtConfig = builder.Configuration.GetSection(JwtOptions.SectionName).Get<JwtOptions>()

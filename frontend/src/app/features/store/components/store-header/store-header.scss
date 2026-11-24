@@ -9,7 +9,7 @@
 .navigation { display: flex; align-items: center; flex: 1; gap: clamp(1rem, 1.7vw, 1.5rem); }
 .store-nav { display: flex; flex: 1; justify-content: center; gap: clamp(1rem, 4vw, 4.5rem); }
 .store-nav a { color: var(--muted); text-decoration: none; display: grid; place-items: center; padding-block: 1.1rem; border-bottom: 3px solid transparent; font-size: .875rem; }
-.store-nav a.active { color: var(--text); border-bottom-color: var(--accent); font-weight: 700; }
+.store-nav a.active, .store-nav a.checkout-active { color: var(--text); border-bottom-color: var(--accent); font-weight: 700; }
 .store-nav a:hover { color: var(--text); }
 .header-search { display: flex; align-items: center; flex: 0 1 14.5rem; min-width: 8rem; background: var(--surface); border: 1px solid var(--border); border-radius: .75rem; padding-inline: .45rem; }
 .header-search button { color: var(--muted); background: none; border: none; padding: .3rem; cursor: pointer; }

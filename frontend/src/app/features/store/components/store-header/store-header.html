@@ -12,7 +12,8 @@
       <nav class="store-nav" aria-label="Store">
         <a routerLink="/store" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }"
           ariaCurrentWhenActive="page" (click)="open.set(false)">Home</a>
-        <a routerLink="/store/games" routerLinkActive="active" ariaCurrentWhenActive="page" (click)="open.set(false)">Store</a>
+        <a routerLink="/store/games" routerLinkActive="active" [class.checkout-active]="onCheckout()"
+          ariaCurrentWhenActive="page" (click)="open.set(false)">Store</a>
         <a routerLink="/store" fragment="genres" (click)="open.set(false)">Categories</a>
       </nav>
       <form class="header-search" (submit)="search($event, headerSearch.value)" role="search" aria-label="Quick game search">

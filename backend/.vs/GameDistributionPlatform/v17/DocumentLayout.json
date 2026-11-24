@@ -3,8 +3,16 @@
   "WorkspaceRootPath": "D:\\Workspace\\GameDistributionPlatform\\backend\\",
   "Documents": [
     {
+      "AbsoluteMoniker": "D:0:0:{06A8BF28-F75E-4E6D-8405-2966B250FAD8}|tests\\GameDistributionPlatform.Infrastructure.Tests\\GameDistributionPlatform.Infrastructure.Tests.csproj|d:\\workspace\\gamedistributionplatform\\backend\\tests\\gamedistributionplatform.infrastructure.tests\\catalog\\catalogservicetests.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{06A8BF28-F75E-4E6D-8405-2966B250FAD8}|tests\\GameDistributionPlatform.Infrastructure.Tests\\GameDistributionPlatform.Infrastructure.Tests.csproj|solutionrelative:tests\\gamedistributionplatform.infrastructure.tests\\catalog\\catalogservicetests.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
       "AbsoluteMoniker": "D:0:0:{16E71D0A-A75A-4888-B67D-6CC6A0B6AC4F}|src\\GameDistributionPlatform.WebApi\\GameDistributionPlatform.WebApi.csproj|d:\\workspace\\gamedistributionplatform\\backend\\src\\gamedistributionplatform.webapi\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{16E71D0A-A75A-4888-B67D-6CC6A0B6AC4F}|src\\GameDistributionPlatform.WebApi\\GameDistributionPlatform.WebApi.csproj|solutionrelative:src\\gamedistributionplatform.webapi\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{16E71D0A-A75A-4888-B67D-6CC6A0B6AC4F}|src\\GameDistributionPlatform.WebApi\\GameDistributionPlatform.WebApi.csproj|d:\\workspace\\gamedistributionplatform\\backend\\src\\gamedistributionplatform.webapi\\controllers\\admingamescontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{16E71D0A-A75A-4888-B67D-6CC6A0B6AC4F}|src\\GameDistributionPlatform.WebApi\\GameDistributionPlatform.WebApi.csproj|solutionrelative:src\\gamedistributionplatform.webapi\\controllers\\admingamescontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{16E71D0A-A75A-4888-B67D-6CC6A0B6AC4F}|src\\GameDistributionPlatform.WebApi\\GameDistributionPlatform.WebApi.csproj|d:\\workspace\\gamedistributionplatform\\backend\\src\\gamedistributionplatform.webapi\\properties\\launchsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}",
@@ -39,19 +47,44 @@
             {
               "$type": "Document",
               "DocumentIndex": 0,
+              "Title": "CatalogServiceTests.cs",
+              "DocumentMoniker": "D:\\Workspace\\GameDistributionPlatform\\backend\\tests\\GameDistributionPlatform.Infrastructure.Tests\\Catalog\\CatalogServiceTests.cs",
+              "RelativeDocumentMoniker": "tests\\GameDistributionPlatform.Infrastructure.Tests\\Catalog\\CatalogServiceTests.cs",
+              "ToolTip": "D:\\Workspace\\GameDistributionPlatform\\backend\\tests\\GameDistributionPlatform.Infrastructure.Tests\\Catalog\\CatalogServiceTests.cs",
+              "RelativeToolTip": "tests\\GameDistributionPlatform.Infrastructure.Tests\\Catalog\\CatalogServiceTests.cs",
+              "ViewState": "AgIAAAgBAAAAAAAAAAAiwDUBAAAsAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-11-24T01:32:25.434Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "AdminGamesController.cs",
+              "DocumentMoniker": "D:\\Workspace\\GameDistributionPlatform\\backend\\src\\GameDistributionPlatform.WebApi\\Controllers\\AdminGamesController.cs",
+              "RelativeDocumentMoniker": "src\\GameDistributionPlatform.WebApi\\Controllers\\AdminGamesController.cs",
+              "ToolTip": "D:\\Workspace\\GameDistributionPlatform\\backend\\src\\GameDistributionPlatform.WebApi\\Controllers\\AdminGamesController.cs",
+              "RelativeToolTip": "src\\GameDistributionPlatform.WebApi\\Controllers\\AdminGamesController.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAoAAAAdAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-11-21T08:19:24.29Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
               "Title": "Program.cs",
               "DocumentMoniker": "D:\\Workspace\\GameDistributionPlatform\\backend\\src\\GameDistributionPlatform.WebApi\\Program.cs",
               "RelativeDocumentMoniker": "src\\GameDistributionPlatform.WebApi\\Program.cs",
               "ToolTip": "D:\\Workspace\\GameDistributionPlatform\\backend\\src\\GameDistributionPlatform.WebApi\\Program.cs",
               "RelativeToolTip": "src\\GameDistributionPlatform.WebApi\\Program.cs",
-              "ViewState": "AgIAAF0BAAAAAAAAAAAqwAgAAAA3AAAAAAAAAA==",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABAAAAAlAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2026-11-19T08:47:37.309Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 1,
+              "DocumentIndex": 3,
               "Title": "launchSettings.json",
               "DocumentMoniker": "D:\\Workspace\\GameDistributionPlatform\\backend\\src\\GameDistributionPlatform.WebApi\\Properties\\launchSettings.json",
               "RelativeDocumentMoniker": "src\\GameDistributionPlatform.WebApi\\Properties\\launchSettings.json",
@@ -63,7 +96,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 2,
+              "DocumentIndex": 4,
               "Title": "AuthResponse.cs",
               "DocumentMoniker": "D:\\Workspace\\GameDistributionPlatform\\backend\\src\\GameDistributionPlatform.Application\\DTOs\\AuthResponse.cs",
               "RelativeDocumentMoniker": "src\\GameDistributionPlatform.Application\\DTOs\\AuthResponse.cs",

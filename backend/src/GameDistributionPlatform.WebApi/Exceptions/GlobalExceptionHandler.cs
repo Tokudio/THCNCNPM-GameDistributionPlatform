@@ -59,6 +59,8 @@ public sealed class GlobalExceptionHandler : IExceptionHandler
         };
 
         problemDetails.Extensions["traceId"] = httpContext.TraceIdentifier;
+        if (exception is GameAlreadyOwnedException) problemDetails.Extensions["code"] = "game_already_owned";
+        if (exception is CheckoutUnavailableException) problemDetails.Extensions["code"] = "checkout_unavailable";
 
         httpContext.Response.StatusCode = statusCode;
 
@@ -128,6 +130,12 @@ public sealed class GlobalExceptionHandler : IExceptionHandler
                 "Conflict",
                 conflict.Message,
                 "https://tools.ietf.org/html/rfc9110#section-15.5.10"
+            ),
+            CheckoutUnavailableException unavailable => (
+                StatusCodes.Status403Forbidden,
+                "Checkout Unavailable",
+                unavailable.Message,
+                "https://tools.ietf.org/html/rfc9110#section-15.5.4"
             ),
             NotFoundException notFound => (
                 StatusCodes.Status404NotFound,

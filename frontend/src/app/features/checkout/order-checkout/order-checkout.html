@@ -1,0 +1,74 @@
+@let state = checkout.state();
+<header class="heading">
+  <nav class="crumb" aria-label="Breadcrumb"><a routerLink="/store/games">Store</a> / <span aria-current="page">Checkout</span></nav>
+  <h1>{{ confirm() ? 'Confirm payment' : 'Review your order' }}</h1>
+</header>
+
+@if (state.kind === 'loading') {
+  <p class="state" role="status">Loading your order…</p>
+} @else if (state.kind === 'error') {
+  <section class="state"><p role="alert">{{ state.message }}</p>
+    <div class="actions">
+      <button class="button button-secondary" type="button" (click)="checkout.retry()">Reload order</button>
+      <a class="button button-secondary" routerLink="/store/games">Back to Store</a>
+    </div>
+  </section>
+} @else {
+  @let order = state.order;
+  <div class="checkout-grid">
+    <section class="panel payment-details" aria-labelledby="payment-title">
+      <h2 id="payment-title">Payment details</h2>
+      <p class="order-code">Order {{ order.orderCode }} · {{ order.status === status.Pending ? 'Pending' : order.status === status.Paid ? 'Paid' : 'Cancelled' }}</p>
+      <p class="label">Payment method</p>
+      <div class="method">
+        <span class="method-mark" aria-hidden="true"></span>
+        <div><strong>{{ order.paymentStatus === null && order.status === status.Paid ? 'Free claim' : 'Mock Payment' }}</strong>
+        <p>This is a simulated payment. No real money is charged.</p></div>
+      </div>
+      @if (order.status !== status.Pending) {
+        <p class="notice-box">This order has been finalized.</p>
+        <a class="button button-primary primary-action" [routerLink]="['/checkout', order.id, 'result']">View result</a>
+      } @else if (!order.mockPaymentAvailable) {
+        <p class="notice-box" role="alert">Mock payment is unavailable in this environment.</p>
+      } @else if (confirm()) {
+        <p class="notice-box">Review the total before confirming the simulated payment.</p>
+        @if (failure(); as error) {
+          @if (error.id === order.id) {
+            <p role="alert">{{ error.message }} <a [routerLink]="['/checkout', order.id, 'result']">Check order status</a></p>
+          }
+        }
+        <div class="payment-actions" [attr.aria-busy]="processing()">
+          <button class="button button-primary primary-action" type="button" [disabled]="processing() || statusCheckRequired(order.id)" (click)="pay(order.id, outcome.Success)">
+            {{ processing() ? 'Processing…' : 'Confirm payment' }}
+          </button>
+          @if (processing()) { <p role="status">Processing simulated payment…</p> }
+          <button class="button button-secondary" type="button" [disabled]="processing() || statusCheckRequired(order.id)" (click)="pay(order.id, outcome.Failure)">Simulate failure</button>
+          @if (!processing()) {
+            <a class="button button-secondary" [routerLink]="['/checkout', order.id]">Back to order</a>
+          }
+        </div>
+      } @else {
+        <p class="notice-box">Review the final amount before completing checkout.</p>
+        <a class="button button-primary primary-action" [routerLink]="['/checkout', order.id, 'payment']">Continue to payment</a>
+      }
+      @if (!processing() && order.items[0]; as item) {
+        <a class="back-link" [routerLink]="['/store/games', item.gameId]">Back to game</a>
+      }
+    </section>
+    <aside class="panel" aria-labelledby="summary-title">
+      <h2 id="summary-title">Order summary</h2>
+      @for (item of order.items; track item.gameId) {
+        <div class="game">
+          <app-game-artwork [source]="item.coverImageUrl" [alt]="'Cover art for ' + item.gameTitle" />
+          <div><strong>{{ item.gameTitle }}</strong>
+          @if (item.categories.length) { <p>{{ item.categories.join(' · ') }}</p> }</div>
+        </div>
+      }
+      <dl class="prices">
+        <div><dt>Original price</dt><dd>{{ money(order.originalAmount, order.currency) }}</dd></div>
+        <div><dt>Discount</dt><dd class="discount">{{ minorUnits(order.discountAmount) ? '−' : '' }}{{ money(order.discountAmount, order.currency) }}</dd></div>
+        <div class="total"><dt>Total <span>({{ order.currency }})</span></dt><dd>{{ money(order.totalAmount, order.currency) }}</dd></div>
+      </dl>
+    </aside>
+  </div>
+}

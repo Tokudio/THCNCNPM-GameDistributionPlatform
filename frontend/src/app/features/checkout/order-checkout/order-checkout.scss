@@ -1,0 +1,32 @@
+@use '../checkout';
+@include checkout.page;
+
+.checkout-grid { display: grid; grid-template-columns: minmax(0, 1.85fr) minmax(0, 1fr); gap: clamp(1rem, 2vw, 1.8rem); align-items: start; }
+.order-code, .label, .method p, .notice-box, .game p { color: var(--muted); }
+.order-code { margin: .5rem 0 1.4rem; overflow-wrap: anywhere; }
+.label { text-transform: uppercase; font-size: .78rem; font-weight: 700; }
+.method { display: flex; align-items: center; gap: .95rem; padding: 1rem; border: 1px solid var(--accent); border-radius: .85rem; background: var(--raised); }
+.method-mark { background: var(--accent); width: 1.5rem; height: 1.5rem; flex: 0 0 auto; border-radius: 50%; }
+.method p, .game p { margin: .25rem 0 0; font-size: .88rem; }
+.notice-box { margin: 2rem 0; padding: 1rem 1.2rem; background: var(--input); border-radius: .8rem; }
+.payment-actions { display: flex; flex-wrap: wrap; gap: .65rem; align-items: center; }
+.primary-action { width: 100%; }
+.payment-actions .button:disabled { opacity: .75; cursor: not-allowed; }
+.back-link { display: inline-block; color: var(--store-cyan); margin-top: 1rem; }
+.game { display: flex; gap: .85rem; align-items: center; margin-block: 1.65rem; }
+.game app-game-artwork { width: clamp(4rem, 8vw, 7rem); aspect-ratio: 1; flex: 0 0 auto; border-radius: 1rem; border: 1px solid var(--border); }
+.game strong { text-transform: uppercase; overflow-wrap: anywhere; }
+.prices { margin: 2rem 0 1rem; }
+.prices > div { display: flex; flex-wrap: wrap; justify-content: space-between; gap: .3rem .75rem; margin-top: .75rem; }
+dt, dt span { color: var(--muted); }
+dd { margin: 0; font-weight: 700; overflow-wrap: anywhere; }
+.discount { color: var(--success); }
+.total { align-items: baseline; padding-top: 1rem; border-top: 1px solid var(--border); }
+.total dt { font-weight: 700; text-transform: uppercase; }
+.total dd { font-size: clamp(1.35rem, 2vw, 1.8rem); }
+
+@media (max-width: 44rem) {
+  .checkout-grid { grid-template-columns: 1fr; }
+  .checkout-grid aside { grid-row: 1; }
+  .payment-actions .button { width: 100%; }
+}

@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, inject, output, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, output, signal } from '@angular/core';
 import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { AuthService } from '../../../../core/auth/auth.service';
 
@@ -13,6 +13,8 @@ export class StoreHeader {
   protected readonly auth = inject(AuthService);
   protected readonly router = inject(Router);
   protected readonly open = signal(false);
+  protected readonly onCheckout = computed(() =>
+    this.router.lastSuccessfulNavigation()?.finalUrl?.root.children['primary']?.segments[0]?.path === 'checkout');
   readonly signOut = output<void>();
 
   protected closeMenu(trigger: HTMLButtonElement): void {

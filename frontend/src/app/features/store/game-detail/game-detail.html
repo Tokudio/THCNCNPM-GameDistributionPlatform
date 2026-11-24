@@ -39,7 +39,17 @@
         @if (pricing.original; as original) { <del>{{ original }}</del> <span class="discount">−{{ pricing.discount }}%</span> }
         <strong [class.free]="pricing.free">{{ pricing.final }}</strong>
       </div>
-      <button type="button" class="button button-primary buy" disabled>Buy game · Coming in Phase 7</button>
+      @let feedback = checkoutFeedback(game.id);
+      <button type="button" class="button button-primary buy" [disabled]="!game.mockPaymentAvailable || purchasing() || feedback?.owned"
+        (click)="buy(game)">
+        @if (purchasing()) { Creating order… }
+        @else if (feedback?.owned) { Owned }
+        @else if (!game.mockPaymentAvailable) { Buy game · Payment unavailable }
+        @else if (pricing.free) { Claim game }
+        @else { Buy game }
+      </button>
+      @if (purchasing()) { <p role="status">Creating your order…</p> }
+      @if (feedback) { <p role="alert">{{ feedback.message }}</p> }
       @if (game.developer || game.publisher || game.releaseDate) {
         <dl>
           @if (game.developer) { <div><dt>Developer</dt><dd>{{ game.developer }}</dd></div> }

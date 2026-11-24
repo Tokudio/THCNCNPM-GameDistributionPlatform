@@ -1,0 +1,49 @@
+@let state = checkout.state();
+<header class="heading">
+  <nav class="crumb" aria-label="Breadcrumb"><a routerLink="/store/games">Store</a> / <span aria-current="page">Checkout</span></nav>
+  @if (state.kind === 'ready') {
+    @switch (outcome(state.order)) {
+      @case ('paid') { <h1>Payment successful</h1> }
+      @case ('free') { <h1>Game claimed</h1> }
+      @case ('failed') { <h1>Payment failed</h1> }
+      @case ('pending') { <h1>Payment pending</h1> }
+      @default { <h1>Payment result</h1> }
+    }
+  } @else { <h1>Payment result</h1> }
+</header>
+
+@if (state.kind === 'loading') {
+  <p class="state" role="status">Checking order status…</p>
+} @else if (state.kind === 'error') {
+  <section class="state">
+    <p role="alert">{{ state.message }}</p>
+    <div class="actions">
+      <button class="button button-secondary" type="button" (click)="checkout.retry()">Reload order status</button>
+      <a class="button button-secondary" routerLink="/store/games">Back to Store</a>
+    </div>
+  </section>
+} @else {
+  @let order = state.order;
+  @let result = outcome(order);
+  <section class="panel result-panel" [class.success]="result === 'paid' || result === 'free'" [class.failed]="result === 'failed'">
+    <div class="result-mark" aria-hidden="true">{{ result === 'paid' || result === 'free' ? '✓' : result === 'failed' ? '×' : '⋯' }}</div>
+    @switch (result) {
+      @case ('paid') { <h2>Your library just got bigger!</h2><p>{{ order.items[0]?.gameTitle }} is now part of your game library.</p> }
+      @case ('free') { <h2>Added to your library</h2><p>{{ order.items[0]?.gameTitle }} is yours. No payment was needed.</p> }
+      @case ('failed') { <h2>Something went wrong</h2><p>{{ order.paymentMessage || 'The simulated payment failed. No money was charged.' }}</p> }
+      @case ('pending') { <h2>Awaiting payment</h2><p>This order has no completed payment.</p> }
+      @default { <h2>Check your order</h2><p>The server has not confirmed ownership for this order.</p> }
+    }
+    <dl><div><dt>Order</dt><dd>{{ order.orderCode }}</dd></div>
+      <div><dt>Order total</dt><dd>{{ money(order.totalAmount, order.currency) }}</dd></div></dl>
+    <div class="actions">
+      <a class="button button-primary" routerLink="/store/games">Back to Store</a>
+      @if (result === 'pending' || result === 'unknown') {
+        <a class="button button-secondary" [routerLink]="['/checkout', order.id]">View order</a>
+        <button class="button button-secondary" type="button" (click)="checkout.retry()">Refresh status</button>
+      } @else if (order.items[0]; as item) {
+        <a class="button button-secondary" [routerLink]="['/store/games', item.gameId]">Back to game</a>
+      }
+    </div>
+  </section>
+}

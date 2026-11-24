@@ -36,6 +36,10 @@ function formatAmount(amount: bigint, currency: string): string {
   return `${formatter.format(amount / 100n)}${fraction} ${currency === 'VND' ? '₫' : currency}`;
 }
 
+export function formatMoney(price: string, currency: string): string {
+  return formatAmount(minorUnits(price), currency);
+}
+
 export function gamePrice(game: Pick<StoreGame, 'price' | 'discountPercent' | 'currency'>) {
   const original = minorUnits(game.price);
   const discount = original > 0n ? game.discountPercent : 0;

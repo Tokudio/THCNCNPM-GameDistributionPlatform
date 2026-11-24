@@ -22,6 +22,27 @@ export const routes: Routes = [
     loadComponent: () => import('./features/store/game-detail/game-detail').then(m => m.GameDetail),
   },
   {
+    path: 'checkout/:id/payment',
+    title: 'Confirm payment | Game Distribution',
+    canActivate: [authGuard],
+    data: { store: true, protected: true, confirm: true },
+    loadComponent: () => import('./features/checkout/order-checkout/order-checkout').then(m => m.OrderCheckout),
+  },
+  {
+    path: 'checkout/:id/result',
+    title: 'Payment result | Game Distribution',
+    canActivate: [authGuard],
+    data: { store: true, protected: true },
+    loadComponent: () => import('./features/checkout/payment-result/payment-result').then(m => m.PaymentResult),
+  },
+  {
+    path: 'checkout/:id',
+    title: 'Review order | Game Distribution',
+    canActivate: [authGuard],
+    data: { store: true, protected: true },
+    loadComponent: () => import('./features/checkout/order-checkout/order-checkout').then(m => m.OrderCheckout),
+  },
+  {
     path: '',
     loadComponent: () => import('./features/auth/auth-layout').then(m => m.AuthLayout),
     children: [

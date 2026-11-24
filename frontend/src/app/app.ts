@@ -39,4 +39,9 @@ export class App {
     this.auth.logout();
     void this.router.navigate(['/login'], { replaceUrl: true });
   }
+
+  protected storeLogout(): void {
+    if (this.router.routerState.snapshot.root.firstChild?.data['protected']) this.logout();
+    else this.auth.logout();
+  }
 }
