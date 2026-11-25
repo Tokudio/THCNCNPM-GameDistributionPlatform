@@ -1,0 +1,33 @@
+:host { display: block; }
+.layout { display: grid; grid-template-columns: 15.25rem minmax(0, 1fr); grid-template-rows: auto 1fr; min-height: 100svh; }
+.toolbar { grid-column: 1 / -1; display: flex; justify-content: space-between; align-items: center; gap: 1rem;
+  min-height: 4.75rem; padding: .7rem clamp(1rem, 3.5vw, 3.5rem) .7rem 1.25rem; background: var(--input);
+  border-bottom: 1px solid var(--border); }
+.brand, .account { display: inline-flex; align-items: center; gap: .6rem; color: var(--text); font-weight: 800; text-decoration: none; }
+.brand { white-space: nowrap; }
+.brand-mark { display: inline-grid; place-items: center; }
+.brand-mark img, .brand-mark b { grid-area: 1 / 1; }
+.brand-mark b { color: white; font-size: 1.15rem; }
+.brand small { color: var(--store-cyan); font-size: .72rem; }
+.account { font-size: .875rem; overflow-wrap: anywhere; }
+.avatar { flex: 0 0 2.15rem; width: 2.15rem; height: 2.15rem; display: grid; place-items: center;
+  border-radius: 50%; background: var(--accent); color: #160d2a; }
+.menu { display: none; min-width: 2.75rem; min-height: 2.75rem; }
+.sidebar { grid-column: 1; grid-row: 2; background: var(--input); border-right: 1px solid var(--border);
+  padding: 1.5rem .85rem; display: flex; flex-direction: column; gap: 1.5rem; }
+.sidebar nav { display: grid; gap: .45rem; }
+.sidebar a, .sidebar button { display: flex; align-items: center; gap: .8rem; min-height: 2.75rem; padding: .55rem .85rem;
+  border: 0; border-left: .2rem solid transparent; border-radius: .65rem; background: transparent; color: var(--muted);
+  font: inherit; text-align: left; text-decoration: none; cursor: pointer; }
+.sidebar a span, .sidebar button span { min-width: 1rem; color: var(--store-cyan); }
+.sidebar a:hover, .sidebar button:hover, .sidebar a.active { background: var(--raised); color: var(--text); }
+.sidebar a.active { border-left-color: var(--accent); font-weight: 700; }
+.sidebar .account-links { border-top: 1px solid var(--border); padding-top: 1rem; }
+.workspace { grid-column: 2; grid-row: 2; min-width: 0; padding: clamp(1.125rem, 2.4vw, 2.4rem) clamp(1.125rem, 2.4vw, 3.4rem) 4rem; }
+@media (max-width: 62rem) {
+  .layout { display: block; }
+  .toolbar { min-height: 4.25rem; padding-inline: 1.125rem; }
+  .account, .sidebar { display: none; }
+  .menu { display: inline-flex; }
+  .sidebar.open { display: flex; border-right: 0; border-bottom: 1px solid var(--border); padding: .85rem 1.125rem; }
+}

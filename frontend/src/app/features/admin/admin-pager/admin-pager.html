@@ -1,0 +1,13 @@
+@let current = page();
+<nav class="pager" aria-label="Phân trang kết quả">
+  <span aria-live="polite">{{ current.totalCount }} kết quả</span>
+  @if (current.totalPages > 1) {
+    <div class="controls">
+      <button type="button" class="button button-secondary" [disabled]="current.pageNumber <= 1"
+        (click)="pageChange.emit(current.pageNumber - 1)">Trang trước</button>
+      <span>Trang {{ current.pageNumber }}/{{ current.totalPages }}</span>
+      <button type="button" class="button button-secondary" [disabled]="current.pageNumber >= current.totalPages || current.pageNumber >= 1000000"
+        (click)="pageChange.emit(current.pageNumber + 1)">Trang sau</button>
+    </div>
+  }
+</nav>

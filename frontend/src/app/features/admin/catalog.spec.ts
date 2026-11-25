@@ -138,7 +138,7 @@ describe('Admin catalog routes and forms', () => {
   });
 
   it.each([
-    [401, 'Your session ended'], [403, 'The Admin role is required'],
+    [401, 'Phiên đăng nhập quản trị đã kết thúc'], [403, 'The Admin role is required'],
   ])('handles API status %s on game list', async (status, message) => {
     await signIn();
     await open('/admin/games');
@@ -147,6 +147,10 @@ describe('Admin catalog routes and forms', () => {
     list.flush({}, { status, statusText: 'Catalog rejected request' });
     harness.detectChanges();
     expect(view().querySelector('[role=alert]')?.textContent).toContain(message);
+    if (status === 401) {
+      expect(TestBed.inject(AuthService).isAuthenticated()).toBe(false);
+      expect(view().querySelector('table')).toBeNull();
+    }
   });
 
   it('redirects guests and rejects a user whose refreshed roles lack Admin', async () => {

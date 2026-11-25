@@ -1,0 +1,35 @@
+<div class="layout" (keydown.escape)="closeMenu(menu)">
+  <header class="toolbar">
+    <a class="brand" routerLink="/admin" aria-label="Trang tổng quan quản trị" (click)="open.set(false)">
+      <span class="brand-mark" aria-hidden="true"><img src="store/brand-mark.svg" width="34" height="32" alt="" /><b>G</b></span>
+      <span>GAME <small>DISTRIBUTION</small></span>
+    </a>
+    @if (auth.currentUser(); as user) {
+      <a class="account" routerLink="/profile" aria-label="Hồ sơ tài khoản của bạn">
+        <span class="avatar" aria-hidden="true">{{ initial(user.displayName, user.email) }}</span>
+        <span>{{ user.displayName || 'Admin' }}</span>
+      </a>
+    }
+    <button #menu type="button" class="button button-secondary menu" aria-label="Menu quản trị"
+      aria-controls="admin-links" [attr.aria-expanded]="open()" (click)="open.set(!open())"><span aria-hidden="true">☰</span></button>
+  </header>
+  <aside class="sidebar" [class.open]="open()" id="admin-links">
+    <nav aria-label="Quản trị">
+      @for (link of links; track link.path) {
+        <a [routerLink]="link.path" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: link.path === '/admin' }"
+          ariaCurrentWhenActive="page" (click)="open.set(false)"><span aria-hidden="true">{{ link.icon }}</span>{{ link.label }}</a>
+      }
+    </nav>
+    <nav class="account-links" aria-label="Tài khoản quản trị">
+      <a routerLink="/store" (click)="open.set(false)"><span aria-hidden="true">↗</span>Quay lại cửa hàng</a>
+      <button type="button" (click)="logout()"><span aria-hidden="true">⇥</span>Đăng xuất</button>
+    </nav>
+  </aside>
+  <div class="workspace" id="admin-content" tabindex="-1">
+    @if (canViewAdmin()) {
+      <router-outlet />
+    } @else if (auth.sessionNotice()) {
+      <p class="notice notice-error" role="alert">Phiên đăng nhập quản trị đã kết thúc. Vui lòng đăng nhập lại.</p>
+    }
+  </div>
+</div>

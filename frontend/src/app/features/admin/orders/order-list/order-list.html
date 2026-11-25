@@ -1,0 +1,63 @@
+<section class="admin-page" aria-labelledby="orders-title">
+  <header class="page-heading"><div><h1 id="orders-title">Đơn hàng</h1><p>Theo dõi đơn hàng và trạng thái thanh toán.</p></div></header>
+  <form class="panel filters" [formGroup]="filters" (ngSubmit)="apply()" aria-label="Bộ lọc đơn hàng">
+    <div class="field search"><label for="order-search">Tìm kiếm</label><input id="order-search" type="search" maxlength="200"
+      formControlName="search" placeholder="Mã đơn, ID, tên hoặc email khách hàng" /></div>
+    <div class="field"><label for="order-status">Đơn hàng</label><select id="order-status" formControlName="status">
+      <option value="">Mọi trạng thái</option><option value="0">Chờ thanh toán</option><option value="1">Đã thanh toán</option><option value="2">Đã hủy</option>
+    </select></div>
+    <div class="field"><label for="payment-status">Thanh toán</label><select id="payment-status" formControlName="paymentStatus">
+      <option value="">Mọi trạng thái</option><option value="0">Đang chờ</option><option value="1">Thành công</option><option value="2">Thất bại</option>
+    </select></div>
+    <div class="field"><label for="order-sort">Ngày tạo</label><select id="order-sort" formControlName="oldestFirst">
+      <option value="">Mới nhất</option><option value="true">Cũ nhất</option>
+    </select></div>
+    <button type="submit" class="button button-primary">Áp dụng</button>
+  </form>
+
+  @let state = orders.state();
+  @switch (state.kind) {
+    @case ('loading') { <p class="panel state" role="status">Đang tải đơn hàng…</p> }
+    @case ('error') {
+      <div class="panel state"><p role="alert">{{ state.message }}</p><button type="button" class="button button-secondary" (click)="orders.reload()">Thử lại</button></div>
+    }
+    @case ('ready') {
+      @let page = state.data.page;
+      @if (page.items.length) {
+        <div class="panel table-panel">
+          <table role="table" aria-label="Danh sách đơn hàng">
+            <thead role="rowgroup"><tr role="row">
+              <th scope="col" role="columnheader">Mã đơn</th><th scope="col" role="columnheader">Khách hàng</th><th scope="col" role="columnheader">Tổng tiền</th>
+              <th scope="col" role="columnheader">Đơn hàng</th><th scope="col" role="columnheader">Thanh toán</th><th scope="col" role="columnheader">Ngày tạo (UTC)</th>
+              <th scope="col" role="columnheader">Thao tác</th>
+            </tr></thead>
+            <tbody role="rowgroup">
+              @for (order of page.items; track order.id) {
+                <tr role="row">
+                  <td role="cell" data-label="Mã đơn"><strong>{{ order.orderCode }}</strong></td>
+                  <td role="cell" data-label="Khách hàng"><div><strong>{{ order.customerName || order.customerEmail || 'Khách hàng' }}</strong>
+                    @if (order.customerName && order.customerEmail) { <small class="customer-email">{{ order.customerEmail }}</small> }</div></td>
+                  <td role="cell" data-label="Tổng tiền"><strong>{{ money(order.totalAmount, order.currency) }}</strong></td>
+                  <td role="cell" data-label="Đơn hàng"><span [class]="'status ' + orderTone(order.status)">{{ orderLabel(order.status) }}</span></td>
+                  <td role="cell" data-label="Thanh toán"><span [class]="'status ' + paymentTone(order.paymentStatus)">{{ paymentLabel(order.paymentStatus) }}</span></td>
+                  <td role="cell" data-label="Ngày tạo (UTC)"><time [attr.datetime]="order.createdAt">{{ order.createdAt | date:'dd/MM/yyyy HH:mm':'UTC' }}</time></td>
+                  <td role="cell" data-label="Thao tác"><a class="link" [routerLink]="['/admin/orders', order.id]"
+                    [attr.aria-label]="'Xem đơn ' + order.orderCode">Xem chi tiết</a></td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+        <app-admin-pager [page]="page" (pageChange)="changePage($event)" />
+      } @else {
+        <div class="panel state">
+          @if (page.totalCount) {
+            <p>Trang này không có kết quả.</p><button type="button" class="button button-secondary" (click)="changePage(1)">Về trang đầu</button>
+          } @else if (state.data.filtered) {
+            <p>Không tìm thấy đơn hàng theo bộ lọc.</p><button type="button" class="button button-secondary" (click)="clear()">Xóa bộ lọc</button>
+          } @else { <p>Chưa có đơn hàng.</p> }
+        </div>
+      }
+    }
+  }
+</section>

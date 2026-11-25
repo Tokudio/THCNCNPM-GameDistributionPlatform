@@ -1,0 +1,3 @@
+@use '../../workspace';
+@include workspace.listing;
+.customer-email { display: block; }

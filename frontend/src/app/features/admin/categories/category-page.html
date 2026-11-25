@@ -1,8 +1,4 @@
 <section class="admin-page" aria-labelledby="page-title">
-  <nav class="section-nav" aria-label="Catalog management">
-    <a class="button button-quiet" routerLink="/admin/games">Games</a>
-    <a class="button button-quiet" routerLink="/admin/categories" aria-current="page">Categories</a>
-  </nav>
   <header class="page-heading">
     <h1 id="page-title">Categories</h1>
     <button type="button" class="button button-primary" [disabled]="busy() || loading()" (click)="edit(null)">New category</button>

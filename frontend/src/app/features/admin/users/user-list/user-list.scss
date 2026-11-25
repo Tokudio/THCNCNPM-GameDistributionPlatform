@@ -1,0 +1,4 @@
+@use '../../workspace';
+@include workspace.listing;
+@include workspace.avatar;
+.name-cell strong { min-width: 0; }

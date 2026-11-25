@@ -18,6 +18,10 @@ export class App {
     this.router.lastSuccessfulNavigation();
     return this.router.routerState.snapshot.root.firstChild?.data['store'] === true;
   });
+  protected readonly adminPage = computed(() => {
+    this.router.lastSuccessfulNavigation();
+    return this.router.routerState.snapshot.root.firstChild?.data['admin'] === true;
+  });
   protected readonly onRegister = computed(() => {
     const url = this.router.lastSuccessfulNavigation()?.finalUrl;
     return url?.root.children['primary']?.segments[0]?.path === 'register';
@@ -38,6 +42,10 @@ export class App {
   protected logout(): void {
     this.auth.logout();
     void this.router.navigate(['/login'], { replaceUrl: true });
+  }
+
+  protected focusMain(content: HTMLElement): void {
+    (content.querySelector<HTMLElement>('#admin-content') ?? content).focus();
   }
 
   protected storeLogout(): void {

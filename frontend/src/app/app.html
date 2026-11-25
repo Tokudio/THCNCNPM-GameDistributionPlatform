@@ -1,10 +1,10 @@
-<button type="button" class="button button-secondary skip-link" (click)="content.focus()">
-  Skip to main content
+<button type="button" class="button button-secondary skip-link" (click)="focusMain(content)">
+  {{ adminPage() ? 'Đến nội dung chính' : 'Skip to main content' }}
 </button>
-<div [class.store-shell]="storePage()">
+<div [class.store-shell]="storePage() || adminPage()">
 @if (storePage()) {
   <app-store-header (signOut)="storeLogout()" />
-} @else {
+} @else if (!adminPage()) {
 <header class="site-header">
   <div class="header-inner">
     <a class="brand" [routerLink]="auth.isAuthenticated() ? '/profile' : '/login'">
@@ -27,7 +27,7 @@
   </div>
 </header>
 }
-<main class="page" [class.store-page]="storePage()" id="main-content" #content tabindex="-1">
+<main class="page" [class.store-page]="storePage()" [class.admin-page-shell]="adminPage()" id="main-content" #content tabindex="-1">
   <router-outlet />
 </main>
 </div>

@@ -82,39 +82,49 @@ export const routes: Routes = [
     loadComponent: () => import('./features/profile/profile-page').then(m => m.ProfilePage),
   },
   {
-    path: 'admin/games',
-    title: 'Manage games | GameVault',
-    canActivate: [authGuard, roleGuard('Admin')],
-    data: { protected: true },
-    loadComponent: () => import('./features/admin/games/game-list').then(m => m.GameList),
-  },
-  {
-    path: 'admin/games/new',
-    title: 'Add game | GameVault',
-    canActivate: [authGuard, roleGuard('Admin')],
-    data: { protected: true },
-    loadComponent: () => import('./features/admin/games/game-form').then(m => m.GameForm),
-  },
-  {
-    path: 'admin/games/:id/edit',
-    title: 'Edit game | GameVault',
-    canActivate: [authGuard, roleGuard('Admin')],
-    data: { protected: true },
-    loadComponent: () => import('./features/admin/games/game-form').then(m => m.GameForm),
-  },
-  {
-    path: 'admin/categories',
-    title: 'Manage categories | GameVault',
-    canActivate: [authGuard, roleGuard('Admin')],
-    data: { protected: true },
-    loadComponent: () => import('./features/admin/categories/category-page').then(m => m.CategoryPage),
-  },
-  {
     path: 'admin',
-    title: 'Administrator access | GameVault',
-    canActivate: [roleGuard('Admin')],
-    data: { protected: true, granted: true },
-    loadComponent: () => import('./features/profile/access-page').then(m => m.AccessPage),
+    data: { protected: true, admin: true },
+    // Guard đọc role mới từ API khi chuyển màn hình quản trị.
+    canActivateChild: [roleGuard('Admin')],
+    loadComponent: () => import('./features/admin/admin-layout/admin-layout').then(m => m.AdminLayout),
+    children: [
+      {
+        path: '', pathMatch: 'full', title: 'Tổng quan hệ thống | GameVault',
+        loadComponent: () => import('./features/admin/dashboard/dashboard').then(m => m.Dashboard),
+      },
+      {
+        path: 'games', title: 'Quản lý game | GameVault',
+        loadComponent: () => import('./features/admin/games/game-list').then(m => m.GameList),
+      },
+      {
+        path: 'games/new', title: 'Thêm game | GameVault',
+        loadComponent: () => import('./features/admin/games/game-form').then(m => m.GameForm),
+      },
+      {
+        path: 'games/:id/edit', title: 'Chỉnh sửa game | GameVault',
+        loadComponent: () => import('./features/admin/games/game-form').then(m => m.GameForm),
+      },
+      {
+        path: 'categories', title: 'Danh mục | GameVault',
+        loadComponent: () => import('./features/admin/categories/category-page').then(m => m.CategoryPage),
+      },
+      {
+        path: 'orders', title: 'Đơn hàng | GameVault',
+        loadComponent: () => import('./features/admin/orders/order-list/order-list').then(m => m.OrderList),
+      },
+      {
+        path: 'orders/:id', title: 'Chi tiết đơn hàng | GameVault',
+        loadComponent: () => import('./features/admin/orders/order-detail/order-detail').then(m => m.OrderDetail),
+      },
+      {
+        path: 'users', title: 'Người dùng | GameVault',
+        loadComponent: () => import('./features/admin/users/user-list/user-list').then(m => m.UserList),
+      },
+      {
+        path: 'users/:id', title: 'Chi tiết người dùng | GameVault',
+        loadComponent: () => import('./features/admin/users/user-detail/user-detail').then(m => m.UserDetail),
+      },
+    ],
   },
   {
     path: 'access-denied',

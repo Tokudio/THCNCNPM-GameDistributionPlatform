@@ -1,8 +1,6 @@
 @mixin page {
   :host { display: block; }
   .admin-page { max-width: 72rem; margin-inline: auto; }
-  .section-nav { display: flex; gap: .65rem; flex-wrap: wrap; margin-bottom: 1.75rem; }
-  .section-nav a[aria-current='page'] { background: var(--raised); color: var(--text); }
   .page-heading { display: flex; gap: 1rem; align-items: center; justify-content: space-between; flex-wrap: wrap; margin-bottom: 1.25rem; }
   h1 { margin: 0; font-size: clamp(2rem, 4vw, 3rem); line-height: 1.12; letter-spacing: -.045em; }
   h2 { margin: 0 0 1rem; font-size: 1.25rem; }

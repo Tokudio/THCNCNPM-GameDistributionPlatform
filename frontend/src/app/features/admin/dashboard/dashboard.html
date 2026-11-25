@@ -1,0 +1,79 @@
+<section class="admin-page" aria-labelledby="dashboard-title">
+  <header class="page-heading"><div><h1 id="dashboard-title">Tổng quan hệ thống</h1><p>Thống kê game, tài khoản, đơn hàng và doanh thu.</p></div></header>
+  @let state = report.state();
+  @switch (state.kind) {
+    @case ('loading') {
+      <p role="status" class="muted">Đang tải tổng quan…</p>
+      <div class="metrics" aria-hidden="true"><div class="panel skeleton"></div><div class="panel skeleton"></div><div class="panel skeleton"></div><div class="panel skeleton"></div></div>
+    }
+    @case ('error') {
+      <div class="panel state"><p role="alert">{{ state.message }}</p><button type="button" class="button button-secondary" (click)="report.reload()">Thử lại</button></div>
+    }
+    @case ('ready') {
+      @let data = state.data;
+      <dl class="metrics">
+        <div class="panel"><dt>Tổng số game</dt><dd data-metric="games">{{ data.games.total }}</dd></div>
+        <div class="panel"><dt>Đã phát hành</dt><dd>{{ data.games.published }}<small>{{ data.games.draft }} bản nháp · {{ data.games.archived }} lưu trữ</small></dd></div>
+        <div class="panel"><dt>Danh mục</dt><dd>{{ data.totalCategories }}</dd></div>
+        <div class="panel"><dt>Tổng đơn hàng</dt><dd data-metric="orders">{{ data.orders.total }}</dd></div>
+        <div class="panel featured"><dt>Người dùng</dt><dd>{{ data.users.total }}<small>{{ data.users.active }} hoạt động · {{ data.users.inactive }} tạm khóa</small></dd></div>
+        <div class="panel featured"><dt>Tổng doanh thu</dt>
+          @for (row of data.revenue; track row.currency) { <dd data-metric="revenue">{{ money(row.amount, row.currency) }}</dd> }
+          @empty { <dd data-metric="revenue">{{ money('0', 'VND') }}</dd> }
+        </div>
+      </dl>
+      @if (data.unverifiedPaidOrders || data.revenueOrdersMissingPaidAt) {
+        <div class="notice" role="status">
+          @if (data.unverifiedPaidOrders) {
+            <div>{{ data.unverifiedPaidOrders }} đơn ở trạng thái đã thanh toán bị loại khỏi doanh thu vì chưa xác minh được số tiền và loại tiền.</div>
+          }
+          @if (data.revenueOrdersMissingPaidAt) {
+            <div>{{ data.revenueOrdersMissingPaidAt }} đơn đã xác minh được tính vào tổng doanh thu nhưng thiếu ngày thanh toán để đưa vào biểu đồ.</div>
+          }
+        </div>
+      }
+      <div class="visuals">
+        <section class="panel" aria-labelledby="revenue-title">
+          <div class="visual-heading"><div><h2 id="revenue-title">Doanh thu 7 ngày</h2><p class="muted">Theo ngày thanh toán, UTC</p></div>
+            @if (data.revenue.length > 1) {
+              <label>Tiền tệ <select #currency (change)="selectedCurrency.set(currency.value)">
+                @for (row of data.revenue; track row.currency) { <option [value]="row.currency" [selected]="row.currency === chart()?.currency">{{ row.currency }}</option> }
+              </select></label>
+            }
+          </div>
+          @if (chart(); as series) {
+            @if (series.points.length) {
+              <ol class="chart" [attr.aria-label]="'Doanh thu theo ngày, ' + series.currency">
+                @for (point of series.points; track point.date) {
+                  <li><div class="chart-track"><meter min="0" max="1000" [value]="point.height"
+                    [attr.aria-label]="((point.date + 'T00:00:00Z') | date:'dd/MM/yyyy':'UTC') + ' ' + money(point.amount, series.currency)"
+                    [attr.title]="money(point.amount, series.currency)"></meter></div>
+                    <time [attr.datetime]="point.date">{{ (point.date + 'T00:00:00Z') | date:'dd/MM':'UTC' }}</time></li>
+                }
+              </ol>
+            } @else { <p class="chart-empty muted">Chưa có dữ liệu doanh thu trong khoảng này.</p> }
+          }
+        </section>
+        <section class="panel distribution" aria-labelledby="order-status-title">
+          <h2 id="order-status-title">Trạng thái đơn hàng</h2>
+          <label>Đã thanh toán <strong>{{ data.orders.paid }}</strong><progress class="positive" [value]="data.orders.paid" [max]="data.orders.total || 1"></progress></label>
+          <label>Chờ thanh toán <strong>{{ data.orders.pending }}</strong><progress [value]="data.orders.pending" [max]="data.orders.total || 1"></progress></label>
+          <label>Đã hủy <strong>{{ data.orders.cancelled }}</strong><progress class="pending" [value]="data.orders.cancelled" [max]="data.orders.total || 1"></progress></label>
+        </section>
+      </div>
+      <section class="panel recent" aria-labelledby="recent-title">
+        <div class="visual-heading"><h2 id="recent-title">Đơn hàng gần đây</h2><a class="link" routerLink="/admin/orders">Xem tất cả đơn hàng</a></div>
+        @if (data.recentOrders.length) {
+          <ul>
+            @for (order of data.recentOrders; track order.id) {
+              <li><a class="link code" [routerLink]="['/admin/orders', order.id]">{{ order.orderCode }}</a>
+                <span [class]="'status ' + statusTone(order.status)">{{ statusLabel(order.status) }}</span>
+                <strong>{{ money(order.totalAmount, order.currency) }}</strong>
+                <time [attr.datetime]="order.createdAt">{{ order.createdAt | date:'dd/MM/yyyy HH:mm':'UTC' }}</time></li>
+            }
+          </ul>
+        } @else { <p class="muted">Chưa có đơn hàng.</p> }
+      </section>
+    }
+  }
+</section>

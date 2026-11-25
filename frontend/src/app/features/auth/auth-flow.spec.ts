@@ -220,13 +220,21 @@ describe('Authentication routes and forms', () => {
 
   it.each([
     { roles: ['User'], destination: '/access-denied', heading: 'Access denied' },
-    { roles: ['Admin'], destination: '/admin', heading: 'Administrator access' },
+    { roles: ['Admin'], destination: '/admin', heading: 'Tổng quan hệ thống' },
   ])('uses freshly fetched roles to navigate to $destination', async ({ roles, destination, heading }) => {
     await authenticate();
     const navigation = harness.navigateByUrl('/admin');
     const me = await vi.waitFor(() => http.expectOne(AUTH_API.me));
     me.flush({ ...user, roles });
     await navigation;
+    if (roles.includes('Admin')) {
+      http.expectOne('/api/v1/admin/dashboard/summary').flush({
+        games: { total: 0, published: 0, draft: 0, archived: 0 }, totalCategories: 0,
+        users: { total: 0, active: 0, inactive: 0 }, orders: { total: 0, pending: 0, paid: 0, cancelled: 0 },
+        revenue: [], revenueStartDate: '2026-11-19', dailyRevenue: [], recentOrders: [],
+      });
+      harness.detectChanges();
+    }
     expect(router.url).toBe(destination);
     expect(page().querySelector('h1')?.textContent).toBe(heading);
   });

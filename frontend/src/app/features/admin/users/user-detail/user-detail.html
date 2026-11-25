@@ -1,0 +1,85 @@
+<section class="admin-page" aria-labelledby="user-title">
+  <nav class="breadcrumbs" aria-label="Đường dẫn"><a class="link" routerLink="/admin/users">← Người dùng</a></nav>
+  <header class="page-heading">
+    <h1 id="user-title">Chi tiết người dùng</h1>
+  </header>
+  @let state = detail.state();
+  @switch (state.kind) {
+  @case ('loading') { <p class="panel state" role="status">Đang tải tài khoản…</p> }
+  @case ('error') {
+  <div class="panel state">
+    <p role="alert">{{ state.message }}</p><button type="button" class="button button-secondary"
+      (click)="detail.reload()">Thử lại</button>
+  </div>
+  }
+  @case ('ready') {
+  @let record = state.data;
+  @let user = record.user;
+  @if (feedback(); as message) {
+  @if (message.id === user.id) {
+  <p class="notice" [class.notice-success]="message.success" [class.notice-error]="!message.success"
+    [attr.role]="message.success ? 'status' : 'alert'">{{ message.text }}</p>
+  }
+  }
+  <div class="detail-grid">
+    <section class="panel" aria-labelledby="identity-title">
+      <div class="identity"><span class="avatar" aria-hidden="true">{{ initial(user.displayName, user.email) }}</span>
+        <div>
+          <h2 id="identity-title">{{ user.displayName || 'Chưa có tên hiển thị' }}</h2>
+          <span class="status" [class.positive]="user.isActive" [class.negative]="!user.isActive">{{
+            statusLabel(user.isActive) }}</span>
+        </div>
+      </div>
+      <dl>
+        <div>
+          <dt>Email</dt>
+          <dd>{{ user.email || 'Chưa có email' }}</dd>
+        </div>
+        <div>
+          <dt>Vai trò</dt>
+          <dd class="roles">
+            @for (role of user.roles; track role) { <span class="status">{{ role }}</span> }
+            @empty { Chưa gán vai trò }
+          </dd>
+        </div>
+        <div>
+          <dt>Ngày tạo</dt>
+          <dd>{{ user.createdAt | date:'dd/MM/yyyy HH:mm':'UTC' }} UTC</dd>
+        </div>
+        <div>
+          <dt>ID người dùng</dt>
+          <dd>{{ user.id }}</dd>
+        </div>
+      </dl>
+      @if (auth.currentUser()?.id !== user.id) {
+      <button type="button" class="button button-secondary change" [disabled]="busy()" (click)="confirm.showModal()">
+        {{ busy() ? 'Đang lưu…' : user.isActive ? 'Tạm khóa tài khoản' : 'Kích hoạt tài khoản' }}
+      </button>
+      <dialog #confirm aria-labelledby="confirm-title" aria-describedby="confirm-description">
+        <h2 id="confirm-title">{{ user.isActive ? 'Xác nhận tạm khóa' : 'Xác nhận kích hoạt' }}</h2>
+        <p id="confirm-description">{{ user.isActive ? 'Tài khoản sẽ mất quyền truy cập từ yêu cầu tiếp theo.' : 'Tài
+          khoản sẽ được phép truy cập lại.' }}</p>
+        <div class="dialog-actions"><button type="button" class="button button-secondary" autofocus
+            (click)="confirm.close()">Hủy</button>
+          <button type="button" class="button button-primary" (click)="saveStatus(user, confirm)">Xác nhận</button>
+        </div>
+      </dialog>
+      } @else { <p class="muted">Bạn không thể tự tạm khóa tài khoản của mình.</p> }
+    </section>
+    <section class="panel" aria-labelledby="usage-title">
+      <h2 id="usage-title">Hoạt động tài khoản</h2>
+      <dl>
+        <div>
+          <dt>Tổng đơn hàng</dt>
+          <dd>{{ record.totalOrders }}</dd>
+        </div>
+        <div>
+          <dt>Game sở hữu</dt>
+          <dd>{{ record.ownedGames }}</dd>
+        </div>
+      </dl>
+    </section>
+  </div>
+  }
+  }
+</section>

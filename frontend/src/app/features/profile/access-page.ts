@@ -9,6 +9,5 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 })
 export class AccessPage {
   private readonly route = inject(ActivatedRoute);
-  protected readonly granted = this.route.snapshot.data['granted'] === true;
   protected readonly query = toSignal(this.route.queryParamMap);
 }

@@ -1,0 +1,61 @@
+<section class="admin-page" aria-labelledby="users-title">
+  <header class="page-heading"><div><h1 id="users-title">Người dùng</h1><p>Xem tài khoản, vai trò và trạng thái truy cập.</p></div></header>
+  <form class="panel filters" [formGroup]="filters" (ngSubmit)="apply()" aria-label="Bộ lọc người dùng">
+    <div class="field search"><label for="user-search">Tìm kiếm</label><input id="user-search" type="search" maxlength="200"
+      formControlName="search" placeholder="Tên hiển thị hoặc email" /></div>
+    <div class="field"><label for="user-status">Trạng thái</label><select id="user-status" formControlName="isActive">
+      <option value="">Mọi trạng thái</option><option value="true">Đang hoạt động</option><option value="false">Tạm khóa</option>
+    </select></div>
+    <div class="field"><label for="user-role">Vai trò</label><select id="user-role" formControlName="role">
+      <option value="">Mọi vai trò</option><option value="Admin">Admin</option><option value="User">User</option>
+    </select></div>
+    <button type="submit" class="button button-primary">Áp dụng</button>
+  </form>
+
+  @let state = users.state();
+  @switch (state.kind) {
+    @case ('loading') { <p class="panel state" role="status">Đang tải người dùng…</p> }
+    @case ('error') {
+      <div class="panel state"><p role="alert">{{ state.message }}</p><button type="button" class="button button-secondary" (click)="users.reload()">Thử lại</button></div>
+    }
+    @case ('ready') {
+      @let page = state.data.page;
+      @if (page.items.length) {
+        <div class="panel table-panel">
+          <table role="table" aria-label="Danh sách người dùng">
+            <thead role="rowgroup"><tr role="row">
+              <th scope="col" role="columnheader">Người dùng</th><th scope="col" role="columnheader">Email</th><th scope="col" role="columnheader">Vai trò</th>
+              <th scope="col" role="columnheader">Trạng thái</th><th scope="col" role="columnheader">Ngày tạo (UTC)</th><th scope="col" role="columnheader">Thao tác</th>
+            </tr></thead>
+            <tbody role="rowgroup">
+              @for (user of page.items; track user.id) {
+                <tr role="row">
+                  <td role="cell" data-label="Người dùng"><div class="name-cell"><span class="avatar" aria-hidden="true">{{ initial(user.displayName, user.email) }}</span>
+                    <strong>{{ user.displayName || 'Chưa có tên' }}</strong></div></td>
+                  <td role="cell" data-label="Email">{{ user.email || 'Chưa có email' }}</td>
+                  <td role="cell" data-label="Vai trò"><div class="roles">
+                    @for (role of user.roles; track role) { <span class="status">{{ role }}</span> }
+                    @empty { <span class="muted">Chưa gán vai trò</span> }
+                  </div></td>
+                  <td role="cell" data-label="Trạng thái"><span class="status" [class.positive]="user.isActive" [class.negative]="!user.isActive">{{ statusLabel(user.isActive) }}</span></td>
+                  <td role="cell" data-label="Ngày tạo (UTC)"><time [attr.datetime]="user.createdAt">{{ user.createdAt | date:'dd/MM/yyyy':'UTC' }}</time></td>
+                  <td role="cell" data-label="Thao tác"><a class="link" [routerLink]="['/admin/users', user.id]"
+                    [attr.aria-label]="'Xem tài khoản ' + (user.displayName || user.email || user.id)">Xem chi tiết</a></td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+        <app-admin-pager [page]="page" (pageChange)="changePage($event)" />
+      } @else {
+        <div class="panel state">
+          @if (page.totalCount) {
+            <p>Trang này không có kết quả.</p><button type="button" class="button button-secondary" (click)="changePage(1)">Về trang đầu</button>
+          } @else if (state.data.filtered) {
+            <p>Không tìm thấy người dùng theo bộ lọc.</p><button type="button" class="button button-secondary" (click)="clear()">Xóa bộ lọc</button>
+          } @else { <p>Chưa có người dùng.</p> }
+        </div>
+      }
+    }
+  }
+</section>

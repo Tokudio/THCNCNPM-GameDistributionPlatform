@@ -93,6 +93,7 @@
   width: min(100%, 90rem);
   padding: clamp(1.25rem, 2.5vw, 2.25rem) clamp(1.125rem, 5.2vw, 4.75rem) 4rem;
 }
+.admin-page-shell { width: 100%; padding: 0; }
 
 @media (max-width: 63rem) {
   .store-page { padding-inline: clamp(1.125rem, 3.5vw, 1.75rem); }

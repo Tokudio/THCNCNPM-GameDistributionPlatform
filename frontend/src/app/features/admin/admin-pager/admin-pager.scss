@@ -1,0 +1,4 @@
+.pager, .controls { display: flex; align-items: center; flex-wrap: wrap; gap: .65rem; }
+.pager { justify-content: space-between; margin-top: 1rem; color: var(--muted); font-size: .875rem; }
+.controls { justify-content: center; }
+.controls button:disabled { opacity: .55; cursor: not-allowed; }

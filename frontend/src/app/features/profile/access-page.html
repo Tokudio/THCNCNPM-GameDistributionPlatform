@@ -1,12 +1,5 @@
 <section class="account-card" aria-labelledby="page-title">
-  @if (granted) {
-    <h1 id="page-title">Administrator access</h1>
-    <p>Your account has the Admin role.</p>
-    <p>
-      <a class="button button-secondary" routerLink="/admin/games">Manage games</a>
-      <a class="button button-secondary" routerLink="/admin/categories">Manage categories</a>
-    </p>
-  } @else if (query()?.get('reason') === 'unavailable') {
+  @if (query()?.get('reason') === 'unavailable') {
     <h1 id="page-title">Couldn’t verify access</h1>
     <p>Try again once your connection is available.</p>
   } @else {

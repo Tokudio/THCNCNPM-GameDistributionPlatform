@@ -1,0 +1,19 @@
+@use '../../workspace';
+@include workspace.details;
+.page-heading h1 { overflow-wrap: anywhere; }
+.items, .payments ol { list-style: none; padding: 0; margin: 0; }
+.items li { display: flex; align-items: center; gap: 1rem; padding-block: .75rem; overflow-wrap: anywhere; }
+.items p { margin: .3rem 0 0; color: var(--muted); }
+.items app-game-artwork { flex: 0 0 min(42%, 10rem); aspect-ratio: 1.25; border: 1px solid var(--border); border-radius: .75rem; }
+.totals { margin-top: 1rem; border-top: 1px solid var(--border); }
+.totals dd { text-align: right; }
+.totals .total { padding-top: .95rem; color: var(--text); font-size: 1.1rem; font-weight: 750; }
+.totals .total dt { color: var(--text); }
+.payments { margin-top: 1.15rem; }
+.payments li { display: grid; grid-template-columns: auto minmax(0, 1fr) auto minmax(0, .9fr) auto; align-items: center;
+  gap: .75rem; padding-block: .75rem; border-top: 1px solid var(--border); overflow-wrap: anywhere; }
+.payments time { color: var(--muted); font-size: .85rem; }
+@media (max-width: 47rem) {
+  .payments li { grid-template-columns: 1fr 1fr; }
+  .payments time { grid-column: 1 / -1; }
+}

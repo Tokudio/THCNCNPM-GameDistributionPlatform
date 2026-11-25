@@ -1,0 +1,57 @@
+<section class="admin-page" aria-labelledby="order-title">
+  <nav class="breadcrumbs" aria-label="Đường dẫn"><a class="link" routerLink="/admin/orders">← Đơn hàng</a></nav>
+  @let state = detail.state();
+  <header class="page-heading"><div><h1 id="order-title">{{ state.kind === 'ready' ? 'Đơn ' + state.data.order.orderCode : 'Chi tiết đơn hàng' }}</h1>
+    @if (state.kind === 'ready') { <p>Tạo lúc {{ state.data.order.createdAt | date:'HH:mm dd/MM/yyyy':'UTC' }} UTC</p> }</div></header>
+
+  @switch (state.kind) {
+    @case ('loading') { <p class="panel state" role="status">Đang tải chi tiết đơn hàng…</p> }
+    @case ('error') {
+      <div class="panel state"><p role="alert">{{ state.message }}</p><button type="button" class="button button-secondary" (click)="detail.reload()">Thử lại</button></div>
+    }
+    @case ('ready') {
+      @let data = state.data;
+      @let order = data.order;
+      <div class="detail-grid">
+        <section class="panel" aria-labelledby="items-title">
+          <h2 id="items-title">Game trong đơn</h2>
+          <ul class="items">
+            @for (item of data.items; track $index) {
+              <li><app-game-artwork [source]="item.coverImageUrl" [alt]="'Ảnh bìa ' + item.gameTitle" />
+                <div><strong>{{ item.gameTitle }}</strong><p>{{ money(item.unitPrice, order.currency) }}</p></div></li>
+            } @empty { <li>Đơn hàng chưa có mục nào.</li> }
+          </ul>
+          <dl class="totals">
+            <div><dt>Giá gốc lúc đặt</dt><dd>{{ money(data.originalAmount, order.currency) }}</dd></div>
+            <div><dt>Giảm giá lúc đặt</dt><dd>{{ money(data.discountAmount, order.currency) }}</dd></div>
+            <div class="total"><dt>Tổng đơn hàng</dt><dd>{{ money(order.totalAmount, order.currency) }}</dd></div>
+          </dl>
+        </section>
+        <section class="panel" aria-labelledby="customer-title">
+          <h2 id="customer-title">Khách hàng và trạng thái</h2>
+          <dl>
+            <div><dt>Khách hàng</dt><dd>{{ order.customerName || 'Chưa có tên hiển thị' }}</dd></div>
+            <div><dt>Email</dt><dd>{{ order.customerEmail || 'Chưa có email' }}</dd></div>
+            <div><dt>Đơn hàng</dt><dd><span [class]="'status ' + orderTone(order.status)">{{ orderLabel(order.status) }}</span></dd></div>
+            <div><dt>Thanh toán</dt><dd><span [class]="'status ' + paymentTone(order.paymentStatus)">{{ paymentLabel(order.paymentStatus) }}</span></dd></div>
+            @if (data.paidAt) { <div><dt>Đã thanh toán</dt><dd>{{ data.paidAt | date:'HH:mm dd/MM/yyyy':'UTC' }} UTC</dd></div> }
+            <div><dt>ID đơn hàng</dt><dd>{{ order.id }}</dd></div>
+          </dl>
+        </section>
+      </div>
+      <section class="panel payments" aria-labelledby="payments-title">
+        <h2 id="payments-title">Lịch sử thanh toán</h2>
+        @if (data.payments.length) {
+          <ol>
+            @for (payment of data.payments; track payment.attemptNumber) {
+              <li><strong>Lần {{ payment.attemptNumber }}</strong><span>{{ methodLabel(payment.method) }}</span>
+                <span [class]="'status ' + paymentTone(payment.status)">{{ paymentLabel(payment.status) }}</span>
+                <strong>{{ money(payment.amount, payment.currency) }}</strong>
+                <time [attr.datetime]="payment.completedAt ?? payment.createdAt">{{ (payment.completedAt ?? payment.createdAt) | date:'HH:mm dd/MM/yyyy':'UTC' }} UTC</time></li>
+            }
+          </ol>
+        } @else { <p class="muted">Chưa có giao dịch thanh toán.</p> }
+      </section>
+    }
+  }
+</section>
