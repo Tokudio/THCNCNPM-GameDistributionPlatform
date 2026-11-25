@@ -1,0 +1,18 @@
+@use '../../store/store';
+@include store.page;
+@include store.states;
+
+.heading p, .empty p { margin: .45rem 0 0; color: var(--muted); }
+.library-search { display: flex; align-items: center; gap: .5rem; padding: .45rem 1.1rem; margin: clamp(1.25rem, 3vw, 2.5rem) 0 1.65rem; min-height: 4.2rem; border: 1px solid var(--border); border-radius: 1rem; background: var(--surface); color: var(--muted); }
+.library-search input { width: 100%; min-width: 0; padding: .55rem .15rem; color: var(--text); background: none; border: 0; }
+.library-search input::placeholder { color: var(--muted); }
+.library-grid { list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1.2rem; }
+.library-grid li { min-width: 0; }
+.empty { text-align: center; background: var(--surface); border: 1px solid var(--border); border-radius: 1rem; padding: clamp(2rem, 7vw, 7rem) 1rem; }
+.empty-icon { margin: 0 auto 1rem; width: clamp(6rem, 13vw, 11.25rem); aspect-ratio: 1; display: grid; place-items: center; border-radius: 50%; background: var(--raised); color: var(--accent); font-size: clamp(2.5rem, 5vw, 4.5rem); }
+.empty .button { margin-top: 1.6rem; }
+.paging { display: flex; justify-content: center; align-items: center; flex-wrap: wrap; gap: .75rem; margin-top: 1.6rem; }
+.paging button:disabled { opacity: .5; cursor: not-allowed; }
+@media (max-width: 64rem) { .library-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (max-width: 52rem) { .library-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 36rem) { .library-grid { gap: .65rem; } .library-search { min-height: 3.15rem; } .heading p { display: none; } }

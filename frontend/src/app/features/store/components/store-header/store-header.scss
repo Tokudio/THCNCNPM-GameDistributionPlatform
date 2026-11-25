@@ -18,9 +18,10 @@
 .account-links { display: flex; gap: .6rem; flex-wrap: wrap; }
 .account-links .button { min-height: 2.65rem; padding-inline: 1.05rem; font-size: .825rem; }
 .account-links .button-primary { width: auto; color: #14102a; }
+.account-links .active-library { color: var(--store-cyan); background: var(--raised); }
 .avatar { display: grid; place-items: center; min-width: 1.5rem; min-height: 1.5rem; border-radius: 50%; background: var(--input); }
 .menu-button { display: none; }
-@media (max-width: 63rem) {
+@media (max-width: 69rem) {
   .header-content { flex-wrap: wrap; justify-content: space-between; min-height: 4.4rem; gap: .75rem; padding: .8rem clamp(1rem, 3vw, 1.75rem); }
   .menu-button { display: inline-flex; }
   .navigation { display: none; flex: 0 0 100%; gap: .75rem; }

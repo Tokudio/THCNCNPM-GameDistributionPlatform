@@ -37,11 +37,15 @@
     <dl><div><dt>Order</dt><dd>{{ order.orderCode }}</dd></div>
       <div><dt>Order total</dt><dd>{{ money(order.totalAmount, order.currency) }}</dd></div></dl>
     <div class="actions">
-      <a class="button button-primary" routerLink="/store/games">Back to Store</a>
+      @if (result === 'paid' || result === 'free') {
+        <a class="button button-primary" routerLink="/library">Go to My Library</a>
+      }
+      <a class="button" [class.button-primary]="result !== 'paid' && result !== 'free'"
+        [class.button-secondary]="result === 'paid' || result === 'free'" routerLink="/store/games">Back to Store</a>
       @if (result === 'pending' || result === 'unknown') {
         <a class="button button-secondary" [routerLink]="['/checkout', order.id]">View order</a>
         <button class="button button-secondary" type="button" (click)="checkout.retry()">Refresh status</button>
-      } @else if (order.items[0]; as item) {
+      } @else if (result === 'failed' && order.items[0]; as item) {
         <a class="button button-secondary" [routerLink]="['/store/games', item.gameId]">Back to game</a>
       }
     </div>

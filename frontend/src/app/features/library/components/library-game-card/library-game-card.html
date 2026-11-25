@@ -1,0 +1,10 @@
+@let item = game();
+<a class="card" [routerLink]="['/library', item.gameId]" [attr.aria-label]="'View owned game ' + item.title">
+  <app-game-artwork class="cover" [source]="item.coverImageUrl" [fallback]="artwork(index())" [alt]="'Cover art for ' + item.title" />
+  <div class="card-copy">
+    <h2>{{ item.title }}</h2>
+    <p>{{ item.categories.length ? item.categories.join(' · ') : 'Uncategorized' }}</p>
+    <p class="acquired">Acquired <time [attr.datetime]="acquiredTimestamp(item.acquiredAt)">{{ acquiredTimestamp(item.acquiredAt) | date: 'd MMM y' : 'UTC' }}</time></p>
+    <div class="card-bottom"><span class="owned">Owned</span><span class="arrow" aria-hidden="true">↗</span></div>
+  </div>
+</a>

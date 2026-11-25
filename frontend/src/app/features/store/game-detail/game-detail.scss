@@ -19,6 +19,7 @@
 .discount { margin-inline-start: .45rem; color: var(--store-cyan); font-weight: 750; }
 .free { color: var(--success); }
 .buy { width: 100%; white-space: normal; }
+.buy + a.buy { margin-top: .65rem; }
 dl { margin: 1.4rem 0 0; padding-top: .95rem; border-top: 1px solid var(--border); display: grid; gap: .6rem; }
 dl div { display: grid; grid-template-columns: 1fr 1fr; gap: .6rem; overflow-wrap: anywhere; }
 dt { color: var(--muted); font-size: .82rem; }

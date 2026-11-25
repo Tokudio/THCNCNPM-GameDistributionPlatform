@@ -1,7 +1,7 @@
 import { DatePipe } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
-import { ChangeDetectionStrategy, Component, DestroyRef, inject, signal } from '@angular/core';
-import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
+import { ChangeDetectionStrategy, Component, computed, DestroyRef, inject, signal } from '@angular/core';
+import { takeUntilDestroyed, toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { catchError, combineLatest, distinctUntilChanged, finalize, map, of, startWith, Subject, switchMap } from 'rxjs';
 import { loginUrl } from '../../../core/auth/auth.guards';
@@ -10,12 +10,14 @@ import { MediaType, StoreGameDetails } from '../../../core/models/game-store.mod
 import { OrderStatus } from '../../../core/models/order.models';
 import { GameStoreService } from '../../../core/services/game-store.service';
 import { OrderService } from '../../../core/services/order.service';
+import { isLibraryGameNotFound, UserLibraryService } from '../../../core/services/user-library.service';
 import { checkoutError } from '../../checkout/checkout-state';
 import { GameArtwork } from '../components/game-artwork/game-artwork';
 import { GameGallery } from '../components/game-gallery/game-gallery';
 import { gamePrice, publicWebUrl, storeError } from '../store-presentation';
 
 type DetailState = { kind: 'loading' | 'missing' } | { kind: 'ready'; game: StoreGameDetails } | { kind: 'error'; message: string };
+type Ownership = 'checking' | 'owned' | 'available' | 'unavailable' | 'sign-in-required';
 
 @Component({
   imports: [DatePipe, RouterLink, GameArtwork, GameGallery],
@@ -26,10 +28,12 @@ type DetailState = { kind: 'loading' | 'missing' } | { kind: 'ready'; game: Stor
 export class GameDetail {
   private readonly api = inject(GameStoreService);
   private readonly orders = inject(OrderService);
+  private readonly library = inject(UserLibraryService);
   private readonly router = inject(Router);
   private readonly auth = inject(AuthService);
   private readonly destroyRef = inject(DestroyRef);
   private readonly refresh = new Subject<void>();
+  private readonly refreshOwnership = new Subject<void>();
   private readonly purchaseFailure = signal<{ gameId: string; userId: string; message: string; owned: boolean } | null>(null);
   protected readonly purchasing = signal(false);
   protected readonly price = gamePrice;
@@ -47,6 +51,30 @@ export class GameDetail {
     )),
   ), { requireSync: true });
 
+  private readonly ownershipTarget = computed(() => {
+    const userId = this.auth.currentUser()?.id;
+    const detail = this.state();
+    return userId && detail.kind === 'ready' ? { userId, gameId: detail.game.id } : null;
+  });
+  private readonly ownershipResult = toSignal(combineLatest([
+    toObservable(this.ownershipTarget).pipe(distinctUntilChanged((a, b) => a?.userId === b?.userId && a?.gameId === b?.gameId)),
+    this.refreshOwnership.pipe(startWith(undefined)),
+  ]).pipe(
+    switchMap(([target]) => target ? this.library.get(target.gameId).pipe(
+      map(game => ({ ...target, status: (game.isOwned === true && game.gameId === target.gameId ? 'owned' : 'unavailable') as Ownership })),
+      catchError((error: unknown) => of({ ...target,
+        status: (isLibraryGameNotFound(error) ? 'available' : 'unavailable') as Ownership })),
+      startWith({ ...target, status: 'checking' as const }),
+    ) : of(null)),
+  ), { initialValue: null });
+  protected readonly ownership = computed<Ownership>(() => {
+    const target = this.ownershipTarget();
+    if (!target) return this.auth.sessionNotice() ? 'sign-in-required' : 'available';
+    const result = this.ownershipResult();
+    if (result?.userId !== target.userId || result.gameId !== target.gameId) return 'checking';
+    return result.status === 'available' && this.checkoutFeedback(target.gameId)?.owned ? 'unavailable' : result.status;
+  });
+
   protected excerpt(description: string): string {
     const first = description.trim().split(/\r?\n/)[0];
     return first.length <= 160 ? first : first.slice(0, 157).trimEnd() + '…';
@@ -62,17 +90,23 @@ export class GameDetail {
 
   protected retry(): void { this.refresh.next(); }
 
+  protected retryOwnership(): void { this.refreshOwnership.next(); }
+
+  protected signInLink(gameId: string) {
+    const destination = this.router.createUrlTree(['/store/games', gameId]).toString();
+    return loginUrl(this.router, destination);
+  }
+
   protected checkoutFeedback(gameId: string) {
     const failure = this.purchaseFailure();
     return failure?.gameId === gameId && failure.userId === this.auth.currentUser()?.id ? failure : null;
   }
 
   protected buy(game: StoreGameDetails): void {
-    if (!game.mockPaymentAvailable || this.purchasing() || this.checkoutFeedback(game.id)?.owned) return;
+    if (!game.mockPaymentAvailable || this.purchasing() || this.ownership() !== 'available') return;
     const user = this.auth.currentUser();
     if (!user || !this.auth.hasVerifiedSession()) {
-      const destination = this.router.createUrlTree(['/store/games', game.id]).toString();
-      void this.router.navigateByUrl(loginUrl(this.router, destination));
+      void this.router.navigateByUrl(this.signInLink(game.id));
       return;
     }
 
@@ -88,7 +122,13 @@ export class GameDetail {
         void this.router.navigate(order.status === OrderStatus.Paid
           ? ['/checkout', order.id, 'result'] : ['/checkout', order.id]);
       },
-      error: error => this.purchaseFailure.set({ gameId: game.id, userId: user.id, ...checkoutError(error) }),
+      error: error => {
+        const target = this.ownershipTarget();
+        if (target?.userId !== user.id || target.gameId !== game.id) return;
+        const feedback = checkoutError(error);
+        this.purchaseFailure.set({ gameId: game.id, userId: user.id, ...feedback });
+        if (feedback.owned) this.retryOwnership();
+      },
     });
   }
 }

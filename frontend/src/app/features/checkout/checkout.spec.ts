@@ -18,6 +18,7 @@ const gameRoute = '/store/games/' + gameId;
 const orderRoute = '/checkout/' + id;
 const orderUrl = base + '/' + id;
 const gameUrl = '/api/v1/games/' + gameId;
+const libraryGameUrl = '/api/v1/library/my/' + gameId;
 const pending: Order = {
   id, orderCode: 'ORD-test', status: OrderStatus.Pending, currency: 'VND',
   createdAt: '2026-11-24T00:00:00Z', paidAt: null, originalAmount: '459000.00', discountAmount: '91800.00',
@@ -67,6 +68,12 @@ describe('Phase 7 checkout', () => {
     harness = await RouterTestingHarness.create(path);
   }
 
+  async function confirmGameIsUnowned() {
+    const ownership = await vi.waitFor(() => http.expectOne(libraryGameUrl));
+    ownership.flush({ code: 'library_game_not_found' }, { status: 404, statusText: 'Not Found' });
+    render();
+  }
+
   it('takes a guest from Buy Game to login with a safe return URL and never creates an order', async () => {
     await open(gameRoute, false);
     http.expectOne(gameUrl).flush(game);
@@ -92,6 +99,7 @@ describe('Phase 7 checkout', () => {
     expect(load.request.headers.has('Authorization')).toBe(false);
     load.flush(game);
     render();
+    await confirmGameIsUnowned();
     click('.buy');
     click('.buy');
     const create = http.expectOne({ method: 'POST', url: base });
@@ -109,22 +117,43 @@ describe('Phase 7 checkout', () => {
     expect(view().querySelector('.primary-action')?.getAttribute('href')).toBe(orderRoute + '/payment');
   });
 
-  it('marks already-owned games and prevents resubmission', async () => {
+  it('verifies a duplicate order with the Library before linking to the owned game', async () => {
     await open(gameRoute);
     http.expectOne(gameUrl).flush(game);
     render();
+    await confirmGameIsUnowned();
     click('.buy');
     http.expectOne(base).flush({ code: 'game_already_owned' }, { status: 409, statusText: 'Conflict' });
     render();
     expect(view().querySelector<HTMLButtonElement>('.buy')?.disabled).toBe(true);
-    expect(view().querySelector('.buy')?.textContent).toContain('Owned');
     expect(view().querySelector('[role=alert]')?.textContent).toContain('You already own');
+    expect(view().querySelector(`a[href="/library/${gameId}"]`)).toBeNull();
+
+    http.expectOne(libraryGameUrl).flush(null, { status: 404, statusText: 'Not Found' });
+    render();
+    expect(view().querySelector(`a[href="/library/${gameId}"]`)).toBeNull();
+    click('.buy');
+    http.expectNone(base);
+
+    click('.price-card button.button-secondary');
+    http.expectOne(libraryGameUrl).flush({ code: 'library_game_not_found' }, { status: 404, statusText: 'Not Found' });
+    render();
+    expect(view().querySelector<HTMLButtonElement>('.buy')?.disabled).toBe(true);
+    expect(view().querySelector(`a[href="/library/${gameId}"]`)).toBeNull();
+
+    click('.price-card button.button-secondary');
+    http.expectOne(libraryGameUrl).flush({ gameId, isOwned: true });
+    render();
+    expect(view().querySelector<HTMLButtonElement>('.buy')?.disabled).toBe(true);
+    expect(view().querySelector('.buy')?.textContent).toContain('Owned');
+    expect(view().querySelector(`a[href="/library/${gameId}"]`)).not.toBeNull();
   });
 
   it('makes checkout unavailable when the backend disables Mock Payment', async () => {
     await open(gameRoute);
     http.expectOne(gameUrl).flush({ ...game, mockPaymentAvailable: false });
     render();
+    await confirmGameIsUnowned();
     expect(view().querySelector<HTMLButtonElement>('.buy')?.disabled).toBe(true);
     await harness.navigateByUrl(orderRoute + '/payment');
     http.expectOne(orderUrl).flush({ ...pending, mockPaymentAvailable: false });
@@ -240,6 +269,7 @@ describe('Phase 7 checkout', () => {
     await open(gameRoute);
     http.expectOne(gameUrl).flush({ ...game, price: 0 });
     render();
+    await confirmGameIsUnowned();
     expect(view().querySelector('.buy')?.textContent).toContain('Claim game');
     click('.buy');
     const free = { ...paid, totalAmount: '0.00', paymentStatus: null };

@@ -23,6 +23,7 @@
       <nav class="account-links" aria-label="Account">
         @if (auth.currentUser(); as user) {
           @if (user.roles.includes('Admin')) { <a class="button button-secondary" routerLink="/admin" (click)="open.set(false)">Admin</a> }
+          <a class="button button-quiet" routerLink="/library" routerLinkActive="active-library" ariaCurrentWhenActive="page" (click)="open.set(false)">My Library</a>
           <a class="button button-secondary" routerLink="/profile" (click)="open.set(false)"><span class="avatar" aria-hidden="true">{{ user.displayName.charAt(0).toUpperCase() }}</span> My profile</a>
           <button type="button" class="button button-quiet" (click)="open.set(false); signOut.emit()">Sign out</button>
         } @else {

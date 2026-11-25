@@ -1,0 +1,59 @@
+@let state = result();
+<nav class="breadcrumb" aria-label="Breadcrumb"><a routerLink="/library">My Library</a>
+  @if (auth.currentUser() && state.kind === 'ready') { <span aria-hidden="true"> / </span><span aria-current="page">{{ state.game.title }}</span> }
+</nav>
+@if (auth.currentUser()) {
+  @switch (state.kind) {
+    @case ('loading') { <p class="state" role="status">Loading owned game…</p> }
+    @case ('missing') {
+      <section class="state"><h1>Game not found in your library</h1><p>This game is unavailable in your library.</p>
+        <a class="button button-primary" routerLink="/library">Back to My Library</a>
+      </section>
+    }
+    @case ('error') {
+      <div class="state"><p role="alert">{{ state.message }}</p>
+        <button type="button" class="button button-secondary" (click)="retry()">Retry</button>
+      </div>
+    }
+    @case ('ready') {
+      @let game = state.game;
+      <div class="owned-layout">
+        <div class="banner">
+          <app-game-artwork [source]="game.bannerImageUrl" [alternate]="game.coverImageUrl" [alt]="'Artwork for ' + game.title" [eager]="true" />
+          <strong aria-hidden="true">{{ game.title }}</strong>
+        </div>
+        <section class="game-info" aria-labelledby="game-title">
+          @if (game.coverImageUrl && game.bannerImageUrl && game.coverImageUrl !== game.bannerImageUrl) {
+            <app-game-artwork class="summary-cover" [source]="game.coverImageUrl" [alt]="'Cover art for ' + game.title" />
+          }
+          <h1 id="game-title">{{ game.title }}</h1>
+          <span class="owned">Owned</span>
+          @if (game.status !== published) { <p class="availability">No longer available on the Store. This game is still in your library.</p> }
+          <p>{{ game.categories.length ? game.categories.join(' · ') : 'Uncategorized' }}</p>
+          <dl>
+            <div><dt>Acquired</dt><dd><time [attr.datetime]="acquiredTimestamp(game.acquiredAt)">{{ acquiredTimestamp(game.acquiredAt) | date: 'd MMM y' : 'UTC' }}</time></dd></div>
+            @if (game.developer) { <div><dt>Developer</dt><dd>{{ game.developer }}</dd></div> }
+            @if (game.publisher) { <div><dt>Publisher</dt><dd>{{ game.publisher }}</dd></div> }
+            @if (game.releaseDate) { <div><dt>Release date</dt><dd>{{ game.releaseDate.slice(0, 10) | date: 'd MMM y' }}</dd></div> }
+          </dl>
+          @if (game.status === published) {
+            <a class="button button-primary" [routerLink]="['/store/games', game.gameId]">View Store details</a>
+          }
+          <a class="button button-secondary" routerLink="/library">Back to My Library</a>
+        </section>
+      </div>
+      @if (game.description || game.minimumRequirements || game.recommendedRequirements) {
+        <section class="about" aria-labelledby="about-title"><h2 id="about-title">About this game</h2>
+          @if (game.description) { <p>{{ game.description }}</p> }
+          @if (game.minimumRequirements || game.recommendedRequirements) {
+            <h3>System requirements</h3>
+            <dl>
+              @if (game.minimumRequirements) { <div><dt>Minimum</dt><dd>{{ game.minimumRequirements }}</dd></div> }
+              @if (game.recommendedRequirements) { <div><dt>Recommended</dt><dd>{{ game.recommendedRequirements }}</dd></div> }
+            </dl>
+          }
+        </section>
+      }
+    }
+  }
+}

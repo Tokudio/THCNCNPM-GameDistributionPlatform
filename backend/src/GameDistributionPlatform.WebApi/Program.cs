@@ -70,6 +70,7 @@ builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<ICategoryService, CategoryService>();
 builder.Services.AddScoped<IGameService, GameService>();
 builder.Services.AddScoped<IOrderService, OrderService>();
+builder.Services.AddScoped<IUserLibraryService, UserLibraryService>();
 builder.Services.AddSingleton(services =>
 {
     var environment = services.GetRequiredService<IHostEnvironment>();

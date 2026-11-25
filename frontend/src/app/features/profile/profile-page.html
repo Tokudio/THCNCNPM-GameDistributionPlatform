@@ -1,25 +1,31 @@
 @if (auth.currentUser(); as user) {
-  <section class="account-card" aria-labelledby="page-title">
-    <div class="profile-heading">
+  <header class="profile-heading"><h1 id="page-title">My profile</h1></header>
+  <div class="profile-grid">
+    <section class="profile-panel identity" aria-label="Profile overview">
       <div class="avatar" aria-hidden="true">{{ user.displayName.slice(0, 1).toUpperCase() }}</div>
-      <h1 id="page-title">Your profile</h1>
-    </div>
-    <dl class="profile-details">
-      <div><dt>Display name</dt><dd>{{ user.displayName }}</dd></div>
-      <div><dt>Email address</dt><dd>{{ user.email }}</dd></div>
-      <div>
-        <dt>Roles</dt>
-        <dd>
-          @for (role of user.roles; track role) {
-            <span class="role">{{ role }}</span>
-          } @empty {
-            No roles assigned.
-          }
-        </dd>
+      <h2>{{ user.displayName }}</h2>
+      <div class="profile-actions">
+        <a class="button button-primary" routerLink="/library">My Library</a>
+        <a class="button button-secondary" routerLink="/store/games">Explore the Store</a>
+        <button class="button button-secondary" type="button" (click)="logout()">Log out</button>
       </div>
-    </dl>
-    @if (user.roles.includes('Admin')) {
-      <a class="button button-secondary" routerLink="/admin">Administrator access</a>
-    }
-  </section>
+    </section>
+    <section class="profile-panel" aria-labelledby="account-title">
+      <h2 id="account-title">Account information</h2>
+      <dl class="profile-details">
+        <div><dt>Display name</dt><dd>{{ user.displayName }}</dd></div>
+        <div><dt>Email address</dt><dd>{{ user.email }}</dd></div>
+        <div><dt>Roles</dt>
+          <dd>
+            @for (role of user.roles; track role) { <span class="role">{{ role }}</span> }
+            @empty { No roles assigned. }
+          </dd>
+        </div>
+      </dl>
+      <p class="read-only">Account settings are read-only.</p>
+      @if (user.roles.includes('Admin')) {
+        <a class="button button-secondary" routerLink="/admin">Administrator access</a>
+      }
+    </section>
+  </div>
 }

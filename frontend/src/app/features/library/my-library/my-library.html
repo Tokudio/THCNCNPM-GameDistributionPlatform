@@ -1,0 +1,53 @@
+<header class="heading">
+  <h1>My game library</h1>
+  <p>Your games, your adventures. All in one place.</p>
+</header>
+@if (auth.currentUser()) {
+  <div class="library-search" role="search">
+    <span aria-hidden="true">⌕</span>
+    <input type="search" [formControl]="search" maxlength="200" aria-label="Search owned games" placeholder="Search owned games..." />
+  </div>
+  @let state = result();
+  <section aria-label="Owned games" [attr.aria-busy]="state.kind === 'loading'">
+    @switch (state.kind) {
+      @case ('loading') { <p class="state" role="status">Loading your library…</p> }
+      @case ('error') {
+        <div class="state"><p role="alert">{{ state.message }}</p>
+          <button type="button" class="button button-secondary" (click)="retry()">Retry</button>
+        </div>
+      }
+      @case ('ready') {
+        @if (state.data.items.length) {
+          <ul class="library-grid">
+            @for (item of state.data.items; track item.gameId) {
+              <li><app-library-game-card [game]="item" [index]="$index" /></li>
+            }
+          </ul>
+          @if (state.data.totalPages > 1) {
+            <nav class="paging" aria-label="Library pages">
+              <button type="button" class="button button-secondary" [disabled]="state.data.pageNumber <= 1"
+                (click)="changePage(state.data.pageNumber - 1, state.query)">Previous</button>
+              <span aria-live="polite">Page {{ state.data.pageNumber }} of {{ state.data.totalPages }}</span>
+              <button type="button" class="button button-secondary" [disabled]="state.data.pageNumber >= state.data.totalPages || state.data.pageNumber >= 1000000"
+                (click)="changePage(state.data.pageNumber + 1, state.query)">Next</button>
+            </nav>
+          }
+        } @else {
+          <div class="empty">
+            <span class="empty-icon" aria-hidden="true">▣</span>
+            @if (state.data.totalCount > 0) {
+              <h2>This page is empty</h2>
+              <button type="button" class="button button-primary" (click)="changePage(1, state.query)">Return to first page</button>
+            } @else if (state.query.search) {
+              <h2>No games match your search</h2><p>Try another game title or clear your search.</p>
+              <button type="button" class="button button-primary" (click)="clearSearch()">Clear search</button>
+            } @else {
+              <h2>Your library is waiting</h2><p>Games you own will appear here after purchase.</p>
+              <a class="button button-primary" routerLink="/store/games">Explore the Store</a>
+            }
+          </div>
+        }
+      }
+    }
+  </section>
+}

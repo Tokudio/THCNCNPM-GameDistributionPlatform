@@ -40,14 +40,26 @@
         <strong [class.free]="pricing.free">{{ pricing.final }}</strong>
       </div>
       @let feedback = checkoutFeedback(game.id);
-      <button type="button" class="button button-primary buy" [disabled]="!game.mockPaymentAvailable || purchasing() || feedback?.owned"
+      @let ownershipStatus = ownership();
+      <button type="button" class="button button-primary buy" [disabled]="!game.mockPaymentAvailable || purchasing() || ownershipStatus !== 'available'"
         (click)="buy(game)">
         @if (purchasing()) { Creating order… }
-        @else if (feedback?.owned) { Owned }
+        @else if (ownershipStatus === 'owned') { Owned }
+        @else if (ownershipStatus === 'checking') { Checking ownership… }
+        @else if (ownershipStatus === 'sign-in-required') { Sign-in required }
+        @else if (ownershipStatus === 'unavailable') { Ownership unavailable }
         @else if (!game.mockPaymentAvailable) { Buy game · Payment unavailable }
         @else if (pricing.free) { Claim game }
         @else { Buy game }
       </button>
+      @if (ownershipStatus === 'owned') {
+        <a class="button button-secondary buy" [routerLink]="['/library', game.id]">View in My Library</a>
+      } @else if (ownershipStatus === 'sign-in-required') {
+        <a class="button button-secondary buy" [routerLink]="signInLink(game.id)">Sign in to check ownership</a>
+      } @else if (ownershipStatus === 'unavailable') {
+        <p role="alert">{{ feedback?.owned ? 'We could not load the library details for this game.' : 'We could not check ownership.' }}</p>
+        <button class="button button-secondary" type="button" (click)="retryOwnership()">Retry ownership check</button>
+      }
       @if (purchasing()) { <p role="status">Creating your order…</p> }
       @if (feedback) { <p role="alert">{{ feedback.message }}</p> }
       @if (game.developer || game.publisher || game.releaseDate) {

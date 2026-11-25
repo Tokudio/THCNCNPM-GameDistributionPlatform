@@ -61,10 +61,24 @@ export const routes: Routes = [
     ],
   },
   {
+    path: 'library',
+    title: 'My Library | Game Distribution',
+    canActivate: [authGuard],
+    data: { store: true, protected: true },
+    loadComponent: () => import('./features/library/my-library/my-library').then(m => m.MyLibrary),
+  },
+  {
+    path: 'library/:gameId',
+    title: 'Owned game | Game Distribution',
+    canActivate: [authGuard],
+    data: { store: true, protected: true },
+    loadComponent: () => import('./features/library/library-game-detail/library-game-detail').then(m => m.LibraryGameDetail),
+  },
+  {
     path: 'profile',
     title: 'Your profile | GameVault',
     canActivate: [authGuard],
-    data: { protected: true },
+    data: { store: true, protected: true },
     loadComponent: () => import('./features/profile/profile-page').then(m => m.ProfilePage),
   },
   {

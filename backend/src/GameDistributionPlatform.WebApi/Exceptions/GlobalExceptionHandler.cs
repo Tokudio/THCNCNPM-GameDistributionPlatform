@@ -61,6 +61,7 @@ public sealed class GlobalExceptionHandler : IExceptionHandler
         problemDetails.Extensions["traceId"] = httpContext.TraceIdentifier;
         if (exception is GameAlreadyOwnedException) problemDetails.Extensions["code"] = "game_already_owned";
         if (exception is CheckoutUnavailableException) problemDetails.Extensions["code"] = "checkout_unavailable";
+        if (exception is NotFoundException { Code: { } code }) problemDetails.Extensions["code"] = code;
 
         httpContext.Response.StatusCode = statusCode;
 
