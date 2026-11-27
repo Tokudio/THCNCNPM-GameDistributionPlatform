@@ -7,7 +7,7 @@ import { finalize } from 'rxjs';
 import { postLoginUrl } from '../../core/auth/auth.guards';
 import { AuthService } from '../../core/auth/auth.service';
 import { AuthField } from './auth-field';
-import { applyValidationProblem, emailErrors, fieldError, nonBlank } from './auth-form';
+import { applyValidationProblem, emailErrors, fieldError, nonBlank, rateLimitMessage } from './auth-form';
 
 @Component({
   imports: [ReactiveFormsModule, AuthField],
@@ -52,7 +52,9 @@ export class LoginPage {
         postLoginUrl(this.router, this.route.snapshot.queryParamMap.get('returnUrl')),
       ),
       error: (error: unknown) => {
-        if (error instanceof HttpErrorResponse && error.status === 401) {
+        if (error instanceof HttpErrorResponse && error.status === 429) {
+          this.feedback.set(rateLimitMessage(error));
+        } else if (error instanceof HttpErrorResponse && error.status === 401) {
           this.feedback.set('The email address or password is incorrect.');
         } else if (error instanceof HttpErrorResponse && error.status === 400) {
           applyValidationProblem(this.form, error, {

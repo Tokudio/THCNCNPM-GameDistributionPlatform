@@ -30,3 +30,9 @@ public sealed record LibraryGameDetailResponse(
 {
     public bool IsOwned => true;
 }
+
+public sealed record LibraryDownloadInfoResponse(
+    Guid GameId, bool IsDownloadAvailable, string? FileName, long? FileSize, string? Message)
+{
+    public bool IsOwned => true;
+}

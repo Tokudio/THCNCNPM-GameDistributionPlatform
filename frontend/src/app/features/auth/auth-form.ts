@@ -6,6 +6,14 @@ export const emailErrors = {
   email: 'Enter a valid email address.',
 };
 
+export function rateLimitMessage(error: HttpErrorResponse): string {
+  const retryAfter = error.headers.get('Retry-After');
+  const seconds = Number(retryAfter);
+  return Number.isSafeInteger(seconds) && seconds > 0
+    ? `Bạn đã gửi quá nhiều yêu cầu. Vui lòng thử lại sau ${seconds} giây.`
+    : 'Bạn đã gửi quá nhiều yêu cầu. Vui lòng thử lại sau.';
+}
+
 export function fieldError(
   control: AbstractControl,
   messages: Record<string, string>,

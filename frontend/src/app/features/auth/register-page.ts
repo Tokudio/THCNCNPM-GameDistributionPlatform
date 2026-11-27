@@ -8,7 +8,7 @@ import { AuthService } from '../../core/auth/auth.service';
 import { AuthField } from './auth-field';
 import {
   applyValidationProblem, emailErrors, fieldError, identityPassword, identityPasswordHint,
-  matchingPasswords, nonBlank,
+  matchingPasswords, nonBlank, rateLimitMessage,
 } from './auth-form';
 
 @Component({
@@ -73,7 +73,9 @@ export class RegisterPage {
         state: { registered: true },
       }),
       error: (error: unknown) => {
-        if (error instanceof HttpErrorResponse && error.status === 409) {
+        if (error instanceof HttpErrorResponse && error.status === 429) {
+          this.feedback.set(rateLimitMessage(error));
+        } else if (error instanceof HttpErrorResponse && error.status === 409) {
           this.form.controls.email.setErrors({ server: 'An account already uses this email address.' });
           this.feedback.set('Use a different email address or sign in to your account.');
         } else if (error instanceof HttpErrorResponse && error.status === 400) {

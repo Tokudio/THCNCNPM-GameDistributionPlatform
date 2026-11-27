@@ -3,12 +3,15 @@ using System.Security.Claims;
 using GameDistributionPlatform.Application.DTOs;
 using GameDistributionPlatform.Application.Exceptions;
 using GameDistributionPlatform.Application.Interfaces;
+using GameDistributionPlatform.WebApi.Security;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace GameDistributionPlatform.WebApi.Controllers;
 
 [ApiController]
+[ResponseCache(Location = ResponseCacheLocation.None, NoStore = true)]
 [Route("api/v1/auth")]
 public class AuthController : ControllerBase
 {
@@ -20,6 +23,7 @@ public class AuthController : ControllerBase
     }
 
     [HttpPost("register")]
+    [EnableRateLimiting(AuthRateLimiting.Register)]
     public async Task<IActionResult> Register(
         [FromBody] RegisterRequest request,
         CancellationToken cancellationToken)
@@ -29,6 +33,7 @@ public class AuthController : ControllerBase
     }
 
     [HttpPost("login")]
+    [EnableRateLimiting(AuthRateLimiting.Login)]
     public async Task<IActionResult> Login(
         [FromBody] LoginRequest request,
         CancellationToken cancellationToken)

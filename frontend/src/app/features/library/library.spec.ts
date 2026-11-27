@@ -39,6 +39,15 @@ describe('Phase 8 User Library', () => {
   const list = () => http.expectOne(req => req.method === 'GET' && req.url === base);
   const button = (selector: string) => view().querySelector<HTMLButtonElement>(selector)!;
 
+  async function packageInfo(available = false) {
+    render();
+    const request = await vi.waitFor(() => http.expectOne(base + '/' + gameId + '/download-info'));
+    expect(request.request.headers.has('Authorization')).toBe(true);
+    request.flush({ gameId, isOwned: true, isDownloadAvailable: available,
+      fileName: available ? 'demo.zip' : null, fileSize: available ? 17 : null, message: null });
+    render();
+  }
+
   beforeEach(() => {
     sessionStorage.clear();
     TestBed.configureTestingModule({ providers: [
@@ -192,20 +201,75 @@ describe('Phase 8 User Library', () => {
   ])('renders the actual acquired instant in UTC for %s', async (timestamp, expected) => {
     await open('/library/' + gameId);
     http.expectOne(base + '/' + gameId).flush({ ...detail, acquiredAt: timestamp });
-    render();
+    await packageInfo();
     expect(view().querySelector('time')?.textContent).toBe(expected);
     expect(view().querySelector('a[href="/store/games/' + gameId + '"]')).not.toBeNull();
   });
 
-  it('shows an archived game to its owner without a Store or download action', async () => {
+  it('shows an archived game without a Store link and explains that a package is missing', async () => {
     await open('/library/' + gameId);
     http.expectOne(base + '/' + gameId).flush({ ...detail, status: GameStatus.Archived });
-    render();
+    await packageInfo();
     expect(view().querySelector('h1')?.textContent).toBe(detail.title);
     expect(view().textContent).toContain('No longer available on the Store');
     expect(view().textContent).toContain('8 GB RAM');
     expect(view().querySelector('a[href^="/store/games"]')).toBeNull();
-    expect(view().textContent).not.toContain('Download');
+    expect(view().textContent).toContain('Game này chưa có tệp tải xuống.');
+    expect(view().querySelector('button.download')).toBeNull();
+  });
+
+  it('requests the archived game package as an authenticated Blob and releases the object URL', async () => {
+    await open('/library/' + gameId);
+    http.expectOne(base + '/' + gameId).flush({ ...detail, status: GameStatus.Archived });
+    await packageInfo(true);
+    const create = vi.fn(() => 'blob:http://localhost/demo');
+    const revoke = vi.fn();
+    const clicked = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(function (this: HTMLAnchorElement) {
+      expect(this.href).toBe('blob:http://localhost/demo');
+      expect(this.download).toBe('demo.zip');
+    });
+    vi.stubGlobal('URL', Object.assign(class extends URL {}, { createObjectURL: create, revokeObjectURL: revoke }));
+    try {
+      button('.download').click();
+      button('.download').click();
+      const request = http.expectOne(base + '/' + gameId + '/download');
+      expect(request.request.headers.get('Authorization')).toBe('Bearer library.fixture.signature');
+      expect(request.request.responseType).toBe('blob');
+      request.flush(new Blob(['fixture'], { type: 'application/zip' }));
+      expect(create).toHaveBeenCalledOnce();
+      expect(clicked).toHaveBeenCalledOnce();
+      await vi.waitFor(() => expect(revoke).toHaveBeenCalledWith('blob:http://localhost/demo'));
+    } finally {
+      clicked.mockRestore();
+      vi.unstubAllGlobals();
+    }
+  });
+
+  it('refreshes metadata and hides the button if the package disappears during download', async () => {
+    await open('/library/' + gameId);
+    http.expectOne(base + '/' + gameId).flush(detail);
+    await packageInfo(true);
+    button('.download').click();
+    http.expectOne(base + '/' + gameId + '/download').flush(null, { status: 404, statusText: 'Not Found' });
+    await packageInfo();
+    expect(view().querySelector('button.download')).toBeNull();
+    expect(view().textContent).toContain('Game này chưa có tệp tải xuống.');
+  });
+
+  it('cancels an in-flight download on logout and hides the old entitlement from the next account', async () => {
+    await open('/library/' + gameId);
+    http.expectOne(base + '/' + gameId).flush(detail);
+    await packageInfo(true);
+    button('.download').click();
+    const request = http.expectOne(base + '/' + gameId + '/download');
+    TestBed.inject(AuthService).logout();
+    render();
+    await vi.waitFor(() => expect(request.cancelled).toBe(true));
+    await signIn('other-fixture');
+    render();
+    expect(view().querySelector('button.download')).toBeNull();
+    http.expectNone(base + '/' + gameId + '/download');
+    http.expectNone(base + '/' + gameId + '/download-info');
   });
 
   it('keeps a denied owned-game route private and does not fall back to public or admin APIs', async () => {
@@ -225,7 +289,7 @@ describe('Phase 8 User Library', () => {
 
     button('.state button').click();
     http.expectOne(base + '/' + gameId).flush(detail);
-    render();
+    await packageInfo();
     expect(view().querySelector('h1')?.textContent).toBe(detail.title);
   });
 
@@ -244,7 +308,7 @@ describe('Phase 8 User Library', () => {
     const request = http.expectOne(base + '/' + gameId);
     expect(request.request.headers.get('Authorization')).toBe('Bearer ' + token);
     request.flush(detail);
-    render();
+    await packageInfo();
     expect(view().querySelector('h1')?.textContent).toBe(detail.title);
   });
 
@@ -298,7 +362,7 @@ describe('Phase 8 User Library', () => {
     const request = await vi.waitFor(() => http.expectOne(base + '/' + gameId));
     expect(request.request.headers.get('Authorization')).toBe('Bearer library.fixture.signature');
     request.flush(detail);
-    render();
+    await packageInfo();
     expect(router.url).toBe('/library/' + gameId);
     expect(view().querySelector('h1')?.textContent).toBe(detail.title);
   });

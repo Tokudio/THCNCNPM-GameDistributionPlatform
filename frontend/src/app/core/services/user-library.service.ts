@@ -2,7 +2,7 @@ import { HttpClient, HttpContext, HttpErrorResponse, HttpParams } from '@angular
 import { inject, Injectable } from '@angular/core';
 import { API_BASE, REQUIRES_AUTH } from '../auth/auth-api';
 import { Page } from '../models/game-store.models';
-import { LibraryGame, LibraryGameDetail } from '../models/user-library.models';
+import { LibraryDownloadInfo, LibraryGame, LibraryGameDetail } from '../models/user-library.models';
 
 export function isLibraryGameNotFound(error: unknown): boolean {
   return error instanceof HttpErrorResponse && error.status === 404 && error.error?.code === 'library_game_not_found';
@@ -21,6 +21,14 @@ export class UserLibraryService {
 
   get(gameId: string) {
     return this.http.get<LibraryGameDetail>(`${this.url}/${encodeURIComponent(gameId)}`, this.options());
+  }
+
+  downloadInfo(gameId: string) {
+    return this.http.get<LibraryDownloadInfo>(`${this.url}/${encodeURIComponent(gameId)}/download-info`, this.options());
+  }
+
+  download(gameId: string) {
+    return this.http.get(`${this.url}/${encodeURIComponent(gameId)}/download`, { ...this.options(), responseType: 'blob' });
   }
 
   private options() {

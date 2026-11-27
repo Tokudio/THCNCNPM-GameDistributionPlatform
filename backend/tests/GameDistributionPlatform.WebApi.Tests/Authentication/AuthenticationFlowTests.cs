@@ -75,5 +75,30 @@ public sealed class AuthenticationFlowTests : IClassFixture<CustomWebApplication
         Assert.Single(currentUser.Roles);
         Assert.Equal(SeedConstants.AppRoles.User, currentUser.Roles[0]);
     }
+
+    [Fact]
+    public async Task AuthenticationResponsesDisallowStorageByCaches()
+    {
+        var email = $"cache_{Guid.NewGuid():N}@example.test";
+        const string password = "FixturePassword123!";
+        using var register = await _client.PostAsJsonAsync("/api/v1/auth/register", new RegisterRequest
+        {
+            Email = email, DisplayName = "Fixture User", Password = password, ConfirmPassword = password
+        });
+        Assert.Equal(HttpStatusCode.Created, register.StatusCode);
+
+        using var login = await _client.PostAsJsonAsync("/api/v1/auth/login", new LoginRequest { Email = email, Password = password });
+        Assert.Equal(HttpStatusCode.OK, login.StatusCode);
+        var credentials = await login.Content.ReadFromJsonAsync<AuthResponse>();
+        Assert.NotNull(credentials);
+
+        using var request = new HttpRequestMessage(HttpMethod.Get, "/api/v1/auth/me");
+        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", credentials.AccessToken);
+        using var profile = await _client.SendAsync(request);
+        Assert.Equal(HttpStatusCode.OK, profile.StatusCode);
+
+        Assert.All(new[] { register, login, profile }, response => Assert.True(response.Headers.CacheControl?.NoStore,
+            $"Thiếu Cache-Control: no-store tại {response.RequestMessage?.RequestUri?.AbsolutePath}."));
+    }
 }
 

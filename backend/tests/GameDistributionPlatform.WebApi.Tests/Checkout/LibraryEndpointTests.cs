@@ -1,12 +1,16 @@
+using System.IO.Compression;
 using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text.Json;
 using GameDistributionPlatform.Application.DTOs;
+using GameDistributionPlatform.Application.Interfaces;
 using GameDistributionPlatform.Domain.Entities;
 using GameDistributionPlatform.Domain.Enums;
 using GameDistributionPlatform.Infrastructure.Data;
 using GameDistributionPlatform.Infrastructure.Identity;
+using GameDistributionPlatform.Infrastructure.Storage;
+using Microsoft.AspNetCore.Hosting;
 using GameDistributionPlatform.WebApi.Tests.Fixtures;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -19,7 +23,152 @@ public sealed class LibraryEndpointTests : IDisposable
 {
     private const string Library = "/api/v1/library/my";
     private const string Orders = "/api/v1/orders";
-    private readonly CustomWebApplicationFactory _factory = new();
+    private static readonly Guid PackageGame = Guid.Parse("25408626-4e57-4cdf-ae05-f3abd1d2f341");
+    private static readonly Guid MissingGame = Guid.Parse("0366e81a-dc3c-4ebb-aecc-d2c5cffc65e4");
+    private const string PackageFile = "demo-signal-path.zip";
+    private readonly CustomWebApplicationFactory _factory = new DownloadFactory();
+
+    [Theory]
+    [InlineData("paid", true)]
+    [InlineData("free", true)]
+    [InlineData("archived", true)]
+    [InlineData("failed", false)]
+    [InlineData("pending", false)]
+    public async Task DownloadUsesActualOrderEntitlementAndRejectsOtherAccounts(string scenario, bool allowed)
+    {
+        using var buyer = await CustomerAsync();
+        using var other = await CustomerAsync();
+        var gameId = await GameAsync("Download fixture", scenario == "free" ? 0 : 100, PackageGame);
+        var order = await OrderAsync(buyer, gameId);
+        if (scenario is "paid" or "archived") await PayAsync(buyer, order.Id, MockPaymentOutcome.Success);
+        if (scenario == "failed") await PayAsync(buyer, order.Id, MockPaymentOutcome.Failure);
+        if (scenario == "archived")
+        {
+            using var scope = _factory.Services.CreateScope();
+            var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            (await db.Games.SingleAsync(game => game.Id == gameId)).Status = GameStatus.Archived;
+            await db.SaveChangesAsync();
+        }
+
+        var url = $"{Library}/{gameId}";
+        using var info = await buyer.GetAsync(url + "/download-info");
+        using var download = await buyer.GetAsync(url + "/download");
+        using var otherInfo = await other.GetAsync(url + "/download-info");
+        using var otherDownload = await other.GetAsync(url + "/download");
+        Assert.Equal(HttpStatusCode.NotFound, otherInfo.StatusCode);
+        Assert.Equal(HttpStatusCode.NotFound, otherDownload.StatusCode);
+        Assert.Equal(allowed ? HttpStatusCode.OK : HttpStatusCode.NotFound, info.StatusCode);
+        Assert.Equal(allowed ? HttpStatusCode.OK : HttpStatusCode.NotFound, download.StatusCode);
+        if (!allowed) return;
+
+        var metadata = await info.Content.ReadFromJsonAsync<LibraryDownloadInfoResponse>();
+        Assert.NotNull(metadata);
+        Assert.True(metadata.IsOwned);
+        Assert.True(metadata.IsDownloadAvailable);
+        Assert.Equal(gameId, metadata.GameId);
+        Assert.Equal(PackageFile, metadata.FileName);
+        Assert.DoesNotContain("DemoPackages", await info.Content.ReadAsStringAsync());
+        Assert.Equal("application/zip", download.Content.Headers.ContentType?.MediaType);
+        Assert.True(download.Headers.CacheControl?.NoStore);
+        Assert.Equal("nosniff", download.Headers.GetValues("X-Content-Type-Options").Single());
+        Assert.Equal(PackageFile, download.Content.Headers.ContentDisposition?.FileName?.Trim('"'));
+        var bytes = await download.Content.ReadAsByteArrayAsync();
+        Assert.Equal(metadata.FileSize, bytes.LongLength);
+        using var zip = new ZipArchive(new MemoryStream(bytes));
+        Assert.NotNull(zip.GetEntry("signal-path.json"));
+        using var staticResponse = await buyer.GetAsync("/DemoPackages/" + PackageFile);
+        Assert.Equal(HttpStatusCode.NotFound, staticResponse.StatusCode);
+    }
+
+    [Fact]
+    public async Task DownloadRoutesRejectGuestInvalidJwtInactiveAccountAndInvalidGameId()
+    {
+        using var guest = _factory.CreateClient();
+        using var invalid = _factory.CreateClient();
+        invalid.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", "invalid-token");
+        using var inactive = await CustomerAsync(active: false);
+        using var active = await CustomerAsync();
+        foreach (var action in new[] { "download-info", "download" })
+        {
+            foreach (var client in new[] { guest, invalid, inactive })
+            {
+                using var denied = await client.GetAsync($"{Library}/{PackageGame}/{action}");
+                Assert.Equal(HttpStatusCode.Unauthorized, denied.StatusCode);
+            }
+            using var malformed = await active.GetAsync($"{Library}/invalid-guid/{action}");
+            Assert.Equal(HttpStatusCode.NotFound, malformed.StatusCode);
+            using var empty = await active.GetAsync($"{Library}/{Guid.Empty}/{action}");
+            Assert.Equal(HttpStatusCode.NotFound, empty.StatusCode);
+        }
+    }
+
+    [Fact]
+    public async Task MissingPackageHasSafeMetadataAndAControlledDownloadError()
+    {
+        using var owner = await CustomerAsync();
+        var gameId = await GameAsync("Missing fixture", 0, MissingGame);
+        await OrderAsync(owner, gameId);
+        var url = $"{Library}/{gameId}";
+        var info = await owner.GetFromJsonAsync<LibraryDownloadInfoResponse>(url + "/download-info");
+        Assert.NotNull(info);
+        Assert.True(info.IsOwned);
+        Assert.False(info.IsDownloadAvailable);
+        Assert.Null(info.FileName);
+        Assert.Null(info.FileSize);
+        using var failure = await owner.GetAsync(url + "/download");
+        Assert.Equal(HttpStatusCode.NotFound, failure.StatusCode);
+        Assert.Equal("application/problem+json", failure.Content.Headers.ContentType?.MediaType);
+        var json = await failure.Content.ReadAsStringAsync();
+        Assert.Contains("game_package_unavailable", json);
+        Assert.DoesNotContain("missing-fixture.zip", json);
+        Assert.DoesNotContain("DemoPackages", json);
+    }
+
+    [Theory]
+    [InlineData("../demo.zip")]
+    [InlineData("other\\demo.zip")]
+    [InlineData("demo.exe")]
+    [InlineData("readme.zip:stream")]
+    [InlineData("C:\\demo.zip")]
+    public void StorageRejectsInvalidPackageMappings(string name)
+    {
+        Assert.Throws<InvalidOperationException>(() =>
+            new LocalGamePackageStorage(AppContext.BaseDirectory, new Dictionary<string, string> { [PackageGame.ToString()] = name }));
+    }
+
+    [Theory]
+    [InlineData("Staging")]
+    [InlineData("Production")]
+    public void DemoPackageMappingIsDisabledOutsideDevelopmentAndTesting(string environment)
+    {
+        using var factory = new DownloadFactory(environment);
+        Assert.Null(factory.Services.GetRequiredService<IGamePackageStorage>().Open(PackageGame));
+    }
+
+    [Fact]
+    public async Task DevelopmentOpenApiDescribesBothDownloadRoutes()
+    {
+        using var factory = new DownloadFactory("Development");
+        using var client = factory.CreateClient();
+        using var document = await client.GetFromJsonAsync<JsonDocument>("/openapi/v1.json");
+        Assert.NotNull(document);
+        var root = document.RootElement;
+        Assert.StartsWith("3.0.", root.GetProperty("openapi").GetString());
+        var bearer = root.GetProperty("components").GetProperty("securitySchemes").GetProperty("Bearer");
+        Assert.Equal("http", bearer.GetProperty("type").GetString());
+        Assert.Equal("bearer", bearer.GetProperty("scheme").GetString());
+        Assert.Equal("JWT", bearer.GetProperty("bearerFormat").GetString());
+
+        var paths = root.GetProperty("paths");
+        foreach (var action in new[] { "download-info", "download" })
+        {
+            var endpoint = paths.GetProperty($"{Library}/{{gameId}}/{action}").GetProperty("get");
+            var requirement = Assert.Single(endpoint.GetProperty("security").EnumerateArray());
+            Assert.Empty(requirement.GetProperty("Bearer").EnumerateArray());
+        }
+        var login = paths.GetProperty("/api/v1/auth/login").GetProperty("post");
+        Assert.False(login.TryGetProperty("security", out var loginSecurity) && loginSecurity.GetArrayLength() > 0);
+    }
 
     [Fact]
     public async Task RequiresValidJwtAndActiveAccountForListAndDetail()
@@ -196,11 +345,12 @@ public sealed class LibraryEndpointTests : IDisposable
         return client;
     }
 
-    private async Task<Guid> GameAsync(string title, decimal price)
+    private async Task<Guid> GameAsync(string title, decimal price, Guid? id = null)
     {
         using var scope = _factory.Services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
         var game = new Game { Title = title, Slug = $"fixture-{Guid.NewGuid():N}", Price = price, Status = GameStatus.Published };
+        if (id is Guid gameId) game.Id = gameId;
         db.Games.Add(game);
         await db.SaveChangesAsync();
         return game.Id;
@@ -220,4 +370,16 @@ public sealed class LibraryEndpointTests : IDisposable
     }
 
     public void Dispose() => _factory.Dispose();
+
+    private sealed class DownloadFactory(string environment = "Testing") : CustomWebApplicationFactory
+    {
+        protected override string TestEnvironment => environment;
+
+        protected override void ConfigureWebHost(IWebHostBuilder builder)
+        {
+            base.ConfigureWebHost(builder);
+            builder.UseSetting($"GameDownloads:Packages:{PackageGame:D}", PackageFile);
+            builder.UseSetting($"GameDownloads:Packages:{MissingGame:D}", "missing-fixture.zip");
+        }
+    }
 }

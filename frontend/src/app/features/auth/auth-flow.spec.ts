@@ -101,6 +101,22 @@ describe('Authentication routes and forms', () => {
     expect(page().querySelector('.role')?.textContent).toContain('User');
   });
 
+  it.each(['login', 'register'] as const)('reports throttling on %s without retrying or authenticating', async action => {
+    await harness.navigateByUrl('/' + action);
+    enter(action === 'login' ? login : registration);
+    submit();
+    http.expectOne(AUTH_API[action]).flush(null, {
+      status: 429, statusText: 'Too Many Requests', headers: { 'Retry-After': '45' },
+    });
+    harness.detectChanges();
+    const message = page().querySelector('[role=alert]')?.textContent;
+    expect(message).toContain('Bạn đã gửi quá nhiều yêu cầu.');
+    expect(message).toContain('45 giây');
+    http.expectNone(AUTH_API[action]);
+    http.expectNone(AUTH_API.me);
+    expect(submitButton().disabled).toBe(false);
+  });
+
   it('validates required fields, email, Identity password, display name and confirmation', async () => {
     await harness.navigateByUrl('/register');
     enter({ email: 'invalid', password: 'weak', confirmPassword: 'different', displayName: ' ' });

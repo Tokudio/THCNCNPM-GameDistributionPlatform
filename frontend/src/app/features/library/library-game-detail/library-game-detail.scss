@@ -18,6 +18,7 @@
 .game-info dl div { display: grid; grid-template-columns: 1fr 1fr; gap: .5rem; padding-block: .35rem; }
 dd { margin: 0; font-weight: 650; overflow-wrap: anywhere; white-space: pre-line; }
 .game-info .button { width: 100%; margin-top: .65rem; white-space: normal; }
+.download-feedback { margin: .65rem 0 0; overflow-wrap: anywhere; }
 .about { margin-top: 1.5rem; }
 .about p { white-space: pre-line; overflow-wrap: anywhere; }
 .about dl { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr)); gap: 1rem; }

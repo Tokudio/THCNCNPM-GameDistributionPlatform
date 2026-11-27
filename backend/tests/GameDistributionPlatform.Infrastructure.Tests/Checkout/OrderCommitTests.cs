@@ -17,6 +17,23 @@ public sealed class OrderCommitTests
 {
     private static readonly CheckoutAvailability Available = new(true);
 
+    [Theory]
+    [InlineData("UPDATE \"Orders\"")]
+    [InlineData("INSERT INTO \"Payments\"")]
+    [InlineData("INSERT INTO \"UserLibraries\"")]
+    public async Task WriteFailureRollsBackOrderPaymentAndOwnership(string commandPrefix)
+    {
+        using var fixture = new SqliteAuthTestDb();
+        var (userId, orderId) = await SeedPendingOrderAsync(fixture);
+        var fault = new WriteFault(commandPrefix);
+        await using var db = CreateInterceptedContext(fixture, fault);
+
+        await Assert.ThrowsAsync<DbUpdateException>(() =>
+            new OrderService(db, Available).CompleteMockPaymentAsync(userId, orderId, MockPaymentOutcome.Success, default));
+        Assert.True(fault.ReachedWrite);
+        await AssertPendingAsync(fixture);
+    }
+
     [Fact]
     public async Task ExceptionBeforeCommitRollsBackAllPaymentWrites()
     {
@@ -120,6 +137,19 @@ public sealed class OrderCommitTests
         Assert.Null(order.PaidAt);
         Assert.Empty(await check.Payments.ToListAsync());
         Assert.Empty(await check.UserLibraries.ToListAsync());
+    }
+
+    private sealed class WriteFault(string commandPrefix) : DbCommandInterceptor
+    {
+        public bool ReachedWrite { get; private set; }
+
+        public override ValueTask<InterceptionResult<DbDataReader>> ReaderExecutingAsync(DbCommand command,
+            CommandEventData eventData, InterceptionResult<DbDataReader> result, CancellationToken cancellationToken = default)
+        {
+            if (!command.CommandText.StartsWith(commandPrefix, StringComparison.Ordinal)) return ValueTask.FromResult(result);
+            ReachedWrite = true;
+            throw new InvalidOperationException("Lỗi ghi dữ liệu được mô phỏng trong SQLite fixture.");
+        }
     }
 
     private sealed class CommitProbe(Action? before = null, Action? after = null) : DbTransactionInterceptor

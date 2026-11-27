@@ -12,15 +12,20 @@ using Xunit;
 
 namespace GameDistributionPlatform.WebApi.Tests.Authentication;
 
-public sealed class LoginEndpointTests : IClassFixture<CustomWebApplicationFactory>
+public sealed class LoginEndpointTests : IDisposable
 {
-    private readonly CustomWebApplicationFactory _factory;
+    private readonly CustomWebApplicationFactory _factory = new();
     private readonly HttpClient _client;
 
-    public LoginEndpointTests(CustomWebApplicationFactory factory)
+    public LoginEndpointTests()
     {
-        _factory = factory;
-        _client = factory.CreateClient();
+        _client = _factory.CreateClient();
+    }
+
+    public void Dispose()
+    {
+        _client.Dispose();
+        _factory.Dispose();
     }
 
     [Fact]

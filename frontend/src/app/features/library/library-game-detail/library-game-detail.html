@@ -1,8 +1,11 @@
 @let state = result();
+@let user = auth.currentUser();
 <nav class="breadcrumb" aria-label="Breadcrumb"><a routerLink="/library">My Library</a>
-  @if (auth.currentUser() && state.kind === 'ready') { <span aria-hidden="true"> / </span><span aria-current="page">{{ state.game.title }}</span> }
+  @if (user && state.kind === 'ready' && state.userId === user.id) {
+    <span aria-hidden="true"> / </span><span aria-current="page">{{ state.game.title }}</span>
+  }
 </nav>
-@if (auth.currentUser()) {
+@if (user && (state.kind !== 'ready' || state.userId === user.id)) {
   @switch (state.kind) {
     @case ('loading') { <p class="state" role="status">Loading owned game…</p> }
     @case ('missing') {
@@ -36,8 +39,26 @@
             @if (game.publisher) { <div><dt>Publisher</dt><dd>{{ game.publisher }}</dd></div> }
             @if (game.releaseDate) { <div><dt>Release date</dt><dd>{{ game.releaseDate.slice(0, 10) | date: 'd MMM y' }}</dd></div> }
           </dl>
+          @let package = packageStatus();
+          @if (package?.info?.isDownloadAvailable) {
+            <button class="button button-primary download" type="button" [disabled]="downloading()" (click)="download()">
+              {{ downloading() ? 'Đang tải…' : 'Tải game' }}
+            </button>
+          } @else if (package?.kind === 'ready') {
+            <p class="download-feedback" role="status">Game này chưa có tệp tải xuống.</p>
+          } @else if (package?.kind === 'error') {
+            <p class="download-feedback" role="alert">Không kiểm tra được tệp tải xuống.</p>
+            <button class="button button-secondary" type="button" (click)="retryDownloadInfo()">Thử lại</button>
+          } @else {
+            <p class="download-feedback" role="status">Đang kiểm tra tệp tải xuống…</p>
+          }
+          @if (downloadError(); as message) {
+            <p class="download-feedback" role="alert">{{ message }}</p>
+          }
           @if (game.status === published) {
-            <a class="button button-primary" [routerLink]="['/store/games', game.gameId]">View Store details</a>
+            <a class="button" [class.button-primary]="!package?.info?.isDownloadAvailable"
+              [class.button-secondary]="package?.info?.isDownloadAvailable"
+              [routerLink]="['/store/games', game.gameId]">View Store details</a>
           }
           <a class="button button-secondary" routerLink="/library">Back to My Library</a>
         </section>

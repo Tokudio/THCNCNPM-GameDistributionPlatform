@@ -7,7 +7,9 @@ using GameDistributionPlatform.Infrastructure.Data.Seeding;
 using GameDistributionPlatform.Infrastructure.Identity;
 using GameDistributionPlatform.Infrastructure.Options;
 using GameDistributionPlatform.Infrastructure.Services;
+using GameDistributionPlatform.Infrastructure.Storage;
 using GameDistributionPlatform.WebApi.Exceptions;
+using GameDistributionPlatform.WebApi.Security;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -15,7 +17,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
-using Microsoft.OpenApi.Models;
+using Microsoft.OpenApi;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -45,6 +47,7 @@ builder.Services.Configure<ApiBehaviorOptions>(options =>
 // Configure ProblemDetails and GlobalExceptionHandler
 builder.Services.AddProblemDetails();
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
+builder.Services.AddAuthRateLimiting(builder.Configuration);
 
 // Configure DbContext with SQL Server
 builder.Services.AddDbContext<AppDbContext>(options =>
@@ -71,6 +74,13 @@ builder.Services.AddScoped<ICategoryService, CategoryService>();
 builder.Services.AddScoped<IGameService, GameService>();
 builder.Services.AddScoped<IOrderService, OrderService>();
 builder.Services.AddScoped<IUserLibraryService, UserLibraryService>();
+builder.Services.AddScoped<IGameDownloadService, GameDownloadService>();
+var demoPackages = builder.Environment.IsDevelopment() || builder.Environment.IsEnvironment("Testing")
+    ? builder.Configuration.GetSection("GameDownloads:Packages").GetChildren()
+        .ToDictionary(entry => entry.Key, entry => entry.Value ?? string.Empty)
+    : new Dictionary<string, string>();
+builder.Services.AddSingleton<IGamePackageStorage>(
+    new LocalGamePackageStorage(builder.Environment.ContentRootPath, demoPackages));
 builder.Services.AddScoped<IAdminReportingService, AdminReportingService>();
 builder.Services.AddScoped<IAdminUserService, AdminUserService>();
 builder.Services.AddSingleton(services =>
@@ -275,9 +285,11 @@ builder.Services.AddAuthentication(options =>
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi(options =>
 {
+    options.OpenApiVersion = OpenApiSpecVersion.OpenApi3_0;
     options.AddDocumentTransformer((document, _, _) =>
     {
         document.Components ??= new OpenApiComponents();
+        document.Components.SecuritySchemes ??= new Dictionary<string, IOpenApiSecurityScheme>();
         document.Components.SecuritySchemes[JwtBearerDefaults.AuthenticationScheme] = new OpenApiSecurityScheme
         {
             Type = SecuritySchemeType.Http,
@@ -300,14 +312,7 @@ builder.Services.AddOpenApi(options =>
         operation.Security ??= [];
         operation.Security.Add(new OpenApiSecurityRequirement
         {
-            [new OpenApiSecurityScheme
-            {
-                Reference = new OpenApiReference
-                {
-                    Type = ReferenceType.SecurityScheme,
-                    Id = JwtBearerDefaults.AuthenticationScheme
-                }
-            }] = []
+            [new OpenApiSecuritySchemeReference(JwtBearerDefaults.AuthenticationScheme, context.Document)] = []
         });
 
         return Task.CompletedTask;
@@ -364,6 +369,8 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
+app.UseRouting();
+app.UseRateLimiter();
 app.UseAuthentication();
 app.UseAuthorization();
 

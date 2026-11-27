@@ -1,4 +1,5 @@
 :host { display: block; min-height: 100svh; }
+:host([hidden]) { display: none; }
 
 .site-header {
   border-bottom: 1px solid var(--border);
